@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "CSVReader.h"
 
 namespace DKK{
@@ -86,10 +88,10 @@ int CSVReader::getField(std::string &record, float &field)
 		record.erase(0, fs.length());
 
 	if (idx != std::string::npos){
-		field = std::stof(record.substr(0, idx));
+		field = atof(record.substr(0, idx).c_str());
 		record.erase(0, idx);
 	}else{
-		field = std::stof(record);
+		field = atof(record.c_str());
 		record.clear();
 	}
 

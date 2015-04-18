@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "Unit.h"
 
 namespace DKK{
@@ -50,7 +52,7 @@ int Unit::getParameter(const std::string &name, int &prm)
 	std::string sprm; 
 	getParameter(name, sprm);
 
-	prm = std::stoi(sprm);
+	prm = atoi(sprm.c_str());
 	return 1;
 }
 
@@ -61,7 +63,7 @@ int Unit::getParameter(const std::string &name, std::vector<int> &prm)
 
 	prm.clear();
 	for (int i = 0; i < sprm.size(); i++)
-		prm.push_back(std::stoi(sprm[i]));
+		prm.push_back(atoi(sprm[i].c_str()));
 
 	return prm.size();
 }
@@ -71,7 +73,7 @@ int Unit::getParameter(const std::string &name, float &prm)
 	std::string sprm; 
 	getParameter(name, sprm);
 
-	prm = std::stof(sprm);
+	prm = atof(sprm.c_str());
 	return 1;
 }
 
@@ -82,7 +84,7 @@ int Unit::getParameter(const std::string &name, std::vector<float> &prm)
 
 	prm.clear();
 	for (int i = 0; i < sprm.size(); i++)
-		prm.push_back(std::stof(sprm[i]));
+		prm.push_back(atof(sprm[i].c_str()));
 
 	return prm.size();
 }

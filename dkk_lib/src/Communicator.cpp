@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include "Communicator.h"
+#include "DistributedArray2D.h"
 
 namespace DKK{
 Communicator::Communicator(int *argc, char*** argv)

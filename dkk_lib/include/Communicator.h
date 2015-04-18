@@ -7,10 +7,10 @@
 
 #include "WindowsExport.h"
 
-#include "Array2D.h"
-#include "DistributedArray2D.h"
-
 namespace DKK{
+
+template<class T> class Array2D;
+template<class T> class DistributedArray2D;
 
 class DKK_EXPORT Communicator{
 public:

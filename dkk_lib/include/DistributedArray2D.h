@@ -2,10 +2,10 @@
 #define DKK_DISTRIBUTEDARRAY2D_H
 
 #include <stdlib.h>
+#include "Communicator.h"
 #include "Array2D.h"
 
 namespace DKK{
-class Communicator;
 
 template<class T> 
 class DistributedArray2D: public Array2D<T>{
@@ -17,8 +17,8 @@ public:
 	inline const int &grows() const { return gr; }
 	inline const int &gcols() const { return gc; }
 
-	inline T &gidx(const int &i) {return idx(i-r_off);}
-	inline T &gidx(const int &i, const int &j) {return idx(i-r_off, c);}
+	inline T &gidx(const int &i) {return this->idx(i-r_off);}
+	inline T &gidx(const int &i, const int &j) {return this->idx(i-r_off, j);}
 
 	void ltgIdx(const int &li, const int &lj, int &gi, int &gj);
 	void gtlIdx(const int &gi, const int &gj, int &li, int &lj);

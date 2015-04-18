@@ -6,7 +6,6 @@
 #include "Primitive.h"
 #include "Array2D.h"
 #include "DistributedArray2D.h"
-
 #include "Communicator.h"
 
 using namespace DKK;
