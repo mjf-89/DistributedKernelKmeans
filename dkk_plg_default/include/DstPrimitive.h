@@ -5,7 +5,7 @@
 
 #include "Worker.h"
 #include "Primitive.h"
-#include "Array2D.h"
+#include "DistributedArray2D.h"
 
 namespace DKK{
 
@@ -22,13 +22,14 @@ public:
 		this->data = &data;
 	}
 
-	void setDstArray(Array2D<float> &dst)
+	void setDstArray(DistributedArray2D<float> &dst)
 	{
 		this->dst = &dst;
 	}
 
 protected:
-	Array2D<float> *data, *dst;
+	Array2D<float> *data;
+	DistributedArray2D<float> *dst;
 };
 
 }

@@ -26,24 +26,17 @@ int main(int argc, char** argv)
 	Kernel &kernel = conf.getKernel();
 	
 	//load dataset
-	data = new Array2D<float>(5000, reader.getDimensionality());
+	data = new Array2D<float>(reader.getLength(), reader.getDimensionality());
 	for (int i = 0; i < data->rows(); i++)
 		reader.read(i, data->bff(i));
 	
 	//compute the kernel
 	K = new DistributedArray2D<float>(comm, data->rows(), data->rows());
 	K_ = new Array2D<float>(data->rows(), data->rows());
-	//kernel.compute(*data, *K);
-	//comm.allgather(*K, *K_);
+	std::cout<<K->length()<<"\n";
+	kernel.compute(*data, *K);
+	comm.allgather(*K, *K_);
 	
-	/*if(!comm.getRank()){
-		for(int i=0; i<K_->rows(); i++){
-			for(int j=0; j<K_->cols(); j++)
-				std::cout<<K_->idx(i,j)<<"\t";
-			std::cout<<"\n";
-		}
-	}*/
-
 	delete data;
 	delete K;
 	

@@ -1,6 +1,7 @@
 #include <math.h>
 
 #include "GaussianKernel.h"
+#include "DstPrimitive.h"
 
 namespace DKK{
 const std::string &GaussianKernel::getName()
@@ -40,14 +41,11 @@ void GaussianKernel::init()
 
 void GaussianKernel::compute(Array2D<float> &dataset, DistributedArray2D<float> &K)
 {
-	int gi, gj;
-	for (int i = 0; i < K.rows(); i++){
-		for (int j = 0; j < K.cols(); j++){
-			K.ltgIdx(i, j, gi, gj);
-			K.idx(i, j) = dst(dataset.bff(gi), dataset.bff(gj), dataset.cols());
-			K.idx(i, j) = exp(-K.idx(i, j)*k);
-		}
-	}
+	DstPrimitive &dst = (DstPrimitive&) getWorker().getPrimitive("DstPrimitive");
+
+	dst.setDataArray(dataset);
+	dst.setDstArray(K);
+	dst.execute();
 
 	return;
 }
