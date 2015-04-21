@@ -22,6 +22,12 @@ public:
 
 	void allgather(DistributedArray2D<float> &src, Array2D<float> &dst);
 	void allgather(DistributedArray2D<int> &src, Array2D<int> &dst);
+
+	void allreducesum(float &val);
+	void allreducesum(Array2D<float> &arr);
+	void allreducesum(int &val);
+	void allreducesum(Array2D<int> &arr);
+
 private:
 	int rank, size;
 	int *cnts, *dsps;

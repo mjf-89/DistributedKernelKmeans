@@ -20,8 +20,8 @@ public:
 	inline T &gidx(const int &i) {return this->idx(i-r_off);}
 	inline T &gidx(const int &i, const int &j) {return this->idx(i-r_off, j);}
 
-	void ltgIdx(const int &li, const int &lj, int &gi, int &gj);
-	void gtlIdx(const int &gi, const int &gj, int &li, int &lj);
+	void ltgIdx(const int &li, const int &lj, int &gi, int &gj) const;
+	void gtlIdx(const int &gi, const int &gj, int &li, int &lj) const;
 private:
 	int gl, gr, gc;
 	int r_off;
@@ -50,14 +50,14 @@ DistributedArray2D<T>::DistributedArray2D(Communicator &comm, int gr)
 }
 
 template<class T>
-void DistributedArray2D<T>::ltgIdx(const int &li, const int &lj, int &gi, int &gj)
+void DistributedArray2D<T>::ltgIdx(const int &li, const int &lj, int &gi, int &gj) const
 {
 	gi = r_off+li;
 	gj = lj;
 }
 
 template<class T>
-void DistributedArray2D<T>::gtlIdx(const int &gi, const int &gj, int &li, int &lj)
+void DistributedArray2D<T>::gtlIdx(const int &gi, const int &gj, int &li, int &lj) const
 {
 	li = gi-r_off;
 	lj = gj;

@@ -104,6 +104,15 @@ Initializer &Configurator::getInitializer()
 	return (Initializer &)getUnitFromOption(opt);
 }
 
+Iterator &Configurator::getIterator()
+{
+	if (opts.find("ITERATOR") == opts.end())
+		throw 1;
+
+	Option opt = opts.find("ITERATOR")->second;
+	return (Iterator &)getUnitFromOption(opt);
+}
+
 Unit &Configurator::getUnitFromOption(Option &opt){
 	if (units.find(opt.getValue()[0]) == units.end())
 		throw 1;

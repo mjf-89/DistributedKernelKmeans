@@ -5,23 +5,17 @@
 #include "GaussianKernel.h"
 #include "CSVReader.h"
 #include "RandomInitializer.h"
+#include "SimpleIterator.h"
 
 #include <iostream>
 extern "C" DKK_PLUGIN_DEFAULT_EXPORT void registerUnits()
 {
-	DKK::Unit *unit;
-	DKK::Worker *worker;
+	DKK::Configurator::registerUnit(new DKK::CSVReader());
+	DKK::Configurator::registerUnit(new DKK::GaussianKernel());
+	DKK::Configurator::registerUnit(new DKK::RandomInitializer());
+	DKK::Configurator::registerUnit(new DKK::SimpleIterator());
 
-	unit = new DKK::CSVReader();
-	DKK::Configurator::registerUnit(unit);
-
-	unit = new DKK::GaussianKernel();
-	DKK::Configurator::registerUnit(unit);
-
-	unit = new DKK::RandomInitializer();
-	DKK::Configurator::registerUnit(unit);
-
-	worker = new DKK::CPUWorker();
+	DKK::Worker *worker = new DKK::CPUWorker();
 	DKK::Configurator::registerWorker(worker);
 	worker->registerPrimitive(new DKK::CPUDstPrimitive());
 

@@ -12,6 +12,7 @@
 #include "Reader.h"
 #include "Kernel.h"
 #include "Initializer.h"
+#include "Iterator.h"
 #include "Worker.h"
 
 namespace DKK{
@@ -66,6 +67,7 @@ public:
 	Reader &getReader();
 	Kernel &getKernel();
 	Initializer &getInitializer();
+	Iterator &getIterator();
 
 private:
 	static Communicator *comm;

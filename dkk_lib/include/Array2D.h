@@ -18,8 +18,10 @@ public:
 	inline const int &cols() const { return c; }
 
 	inline T &idx(const int &i){ return buffer[i*c]; }
+	const inline T &idx(const int &i) const{ return buffer[i*c]; }
 	inline T &idx(const int &i, const int &j) { return buffer[i*c + j]; }
-	
+	const inline T &idx(const int &i, const int &j) const{ return buffer[i*c + j]; }
+
 	inline T *bff(const int &i){ return buffer + i*c; }
 
 	void fill(const T &f);
