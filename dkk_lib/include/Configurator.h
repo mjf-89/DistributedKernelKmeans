@@ -7,9 +7,11 @@
 #include <map>
 
 #include "WindowsExport.h"
+#include "Communicator.h"
 #include "Unit.h"
 #include "Reader.h"
 #include "Kernel.h"
+#include "Initializer.h"
 #include "Worker.h"
 
 namespace DKK{
@@ -49,10 +51,12 @@ public:
 		const std::map<std::string, std::vector<std::string> > &getPrms() const;
 	};
 
-	Configurator(std::string conf_file_name);
+	Configurator(int *argc, char ***argv);
+	~Configurator();
 
 	Option &getOption(std::string name);
 
+	static Communicator &getCommunicator();
 	static void registerUnit(Unit *unit);
 	static Unit & getUnit(const std::string &name);
 	static void registerWorker(Worker *worker);
@@ -61,8 +65,10 @@ public:
 	void loadPlugins();
 	Reader &getReader();
 	Kernel &getKernel();
+	Initializer &getInitializer();
 
 private:
+	static Communicator *comm;
 	static std::map<std::string, Unit*> units;
 	static std::map<std::string, Worker*> workers;
 

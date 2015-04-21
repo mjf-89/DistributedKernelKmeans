@@ -4,7 +4,9 @@
 #include "CPUDstPrimitive.h"
 #include "GaussianKernel.h"
 #include "CSVReader.h"
+#include "RandomInitializer.h"
 
+#include <iostream>
 extern "C" DKK_PLUGIN_DEFAULT_EXPORT void registerUnits()
 {
 	DKK::Unit *unit;
@@ -14,6 +16,9 @@ extern "C" DKK_PLUGIN_DEFAULT_EXPORT void registerUnits()
 	DKK::Configurator::registerUnit(unit);
 
 	unit = new DKK::GaussianKernel();
+	DKK::Configurator::registerUnit(unit);
+
+	unit = new DKK::RandomInitializer();
 	DKK::Configurator::registerUnit(unit);
 
 	worker = new DKK::CPUWorker();

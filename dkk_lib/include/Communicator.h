@@ -21,6 +21,7 @@ public:
 	inline const int &getSize() const {return size;}
 
 	void allgather(DistributedArray2D<float> &src, Array2D<float> &dst);
+	void allgather(DistributedArray2D<int> &src, Array2D<int> &dst);
 private:
 	int rank, size;
 	int *cnts, *dsps;

@@ -12,18 +12,20 @@ using namespace DKK;
 
 int main(int argc, char** argv)
 {
-	Communicator comm(&argc, &argv);
-
 	//read configuration file
-	Configurator conf(argv[1]);
+	Configurator conf(&argc, &argv);
 	conf.loadPlugins();
+	Communicator &comm = conf.getCommunicator();
 
-	Array2D<float> *data, *K_;
+	Array2D<float> *data;
 	DistributedArray2D<float> *K;
+	Array2D<int> *labels_;
+	DistributedArray2D<int> *labels;
 
 	//get algorithm units
 	Reader &reader = conf.getReader();
 	Kernel &kernel = conf.getKernel();
+	Initializer &initializer = conf.getInitializer();
 	
 	//load dataset
 	data = new Array2D<float>(reader.getLength(), reader.getDimensionality());
@@ -32,10 +34,20 @@ int main(int argc, char** argv)
 	
 	//compute the kernel
 	K = new DistributedArray2D<float>(comm, data->rows(), data->rows());
-	K_ = new Array2D<float>(data->rows(), data->rows());
-	std::cout<<K->length()<<"\n";
+
+	labels = new DistributedArray2D<int>(comm, data->rows());
+	labels_ = new Array2D<int>(data->rows());
+
 	kernel.compute(*data, *K);
-	comm.allgather(*K, *K_);
+	initializer.label(*data, *K, *labels);
+
+	comm.allgather(*labels, *labels_);
+
+	for(int i=0; i<labels_->rows() && !comm.getRank(); i++){
+		for(int j=0; j<labels_->cols(); j++)
+			std::cout<<labels_->idx(i,j)<<"\t";	
+		std::cout<<"\n";
+	}
 	
 	delete data;
 	delete K;

@@ -47,6 +47,10 @@ void GaussianKernel::compute(Array2D<float> &dataset, DistributedArray2D<float> 
 	dst.setDstArray(K);
 	dst.execute();
 
+	for(int i=0; i<K.rows(); i++)
+		for(int j=0; j<K.cols(); j++)
+			K.idx(i,j) =  exp(-K.idx(i,j)*k);
+
 	return;
 }
 

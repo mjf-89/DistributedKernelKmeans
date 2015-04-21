@@ -8,18 +8,19 @@
 #endif
 
 #include "Configurator.h"
+#include "Communicator.h"
 #include "Unit.h"
 #include "Worker.h"
 #include "Primitive.h"
 
 namespace DKK{
 
-Configurator::Configurator(std::string conf_file_name)
+Configurator::Configurator(int *argc, char ***argv)
 {
-	std::string line;
-	
-	conf_file.open(conf_file_name.c_str(), std::ios::in);
+	comm = new Communicator(argc, argv);
+	conf_file.open((*argv)[1], std::ios::in);
 
+	std::string line;
 	while (std::getline(conf_file,line))
 	{
 		Option opt(line);
@@ -28,6 +29,11 @@ Configurator::Configurator(std::string conf_file_name)
 		}
 	}
 	return;
+}
+
+Configurator::~Configurator()
+{
+	delete comm;
 }
 
 Configurator::Option &Configurator::getOption(std::string name)
@@ -49,6 +55,12 @@ Unit & Configurator::getUnit(const std::string &name)
 		return *units.find(name)->second;
 
 	throw 1;
+}
+
+Communicator *Configurator::comm;
+Communicator &Configurator::getCommunicator()
+{
+	return *comm;
 }
 
 std::map<std::string, Worker*> Configurator::workers;
@@ -81,6 +93,15 @@ Kernel &Configurator::getKernel()
 
 	Option opt = opts.find("KERNEL")->second;
 	return (Kernel &)getUnitFromOption(opt);
+}
+
+Initializer &Configurator::getInitializer()
+{
+	if (opts.find("INITIALIZER") == opts.end())
+		throw 1;
+
+	Option opt = opts.find("INITIALIZER")->second;
+	return (Initializer &)getUnitFromOption(opt);
 }
 
 Unit &Configurator::getUnitFromOption(Option &opt){
