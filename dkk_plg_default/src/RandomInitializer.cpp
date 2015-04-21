@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <set>
 
+#include "Random.h"
 #include "RandomInitializer.h"
 
 namespace DKK{
@@ -35,7 +36,7 @@ void RandomInitializer::init()
 	getParameter("SEED", seed);
 	getParameter("NC", NC); 
 
-	std::srand(seed);
+	srand(seed);
 }
 
 void RandomInitializer::label(Array2D<float> &data, DistributedArray2D<float> &K, DistributedArray2D<int> &labels)
@@ -43,7 +44,7 @@ void RandomInitializer::label(Array2D<float> &data, DistributedArray2D<float> &K
 	std::set<int> medoids;
 
 	while(medoids.size()<NC){
-		medoids.insert(std::rand()%data.rows());
+		medoids.insert(rand()%data.rows());
 	}
 
 	for(int i=0; i<labels.length(); i++){
