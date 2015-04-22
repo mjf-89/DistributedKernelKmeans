@@ -15,7 +15,7 @@ public:
 
 	virtual int getDimensionality()=0;
 	virtual int getLength()=0;
-	virtual int read(int idx, float *data)=0;	
+	virtual int read(int idx, DKK_TYPE_REAL *data)=0;	
 };
 
 }

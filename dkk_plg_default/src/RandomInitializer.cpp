@@ -39,7 +39,7 @@ void RandomInitializer::init()
 	srand(seed);
 }
 
-void RandomInitializer::label(Array2D<float> &data, DistributedArray2D<float> &K, DistributedArray2D<int> &labels)
+void RandomInitializer::label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_TYPE_REAL> &K, DistributedArray2D<DKK_TYPE_INT> &labels)
 {	
 	std::set<int> medoids;
 

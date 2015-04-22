@@ -39,7 +39,7 @@ void GaussianKernel::init()
 	k = 0.5 / sigma / sigma;
 }
 
-void GaussianKernel::compute(Array2D<float> &dataset, DistributedArray2D<float> &K)
+void GaussianKernel::compute(Array2D<DKK_TYPE_REAL> &dataset, DistributedArray2D<DKK_TYPE_REAL> &K)
 {
 	DstPrimitive &dst = (DstPrimitive&) getWorker().getPrimitive("DstPrimitive");
 
@@ -52,15 +52,6 @@ void GaussianKernel::compute(Array2D<float> &dataset, DistributedArray2D<float> 
 			K.idx(i,j) =  exp(-K.idx(i,j)*k);
 
 	return;
-}
-
-float GaussianKernel::dst(float *va, float *vb, int d)
-{
-	float dst = 0.0;
-	for (int i = 0; i < d; i++)
-		dst += (va[i] - vb[i])*(va[i] - vb[i]);
-
-	return dst;
 }
 
 }

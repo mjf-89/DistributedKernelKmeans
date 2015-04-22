@@ -44,7 +44,7 @@ void CSVReader::init()
 
 	//read dimensionality
 	std::string record;
-	float field;
+	DKK_TYPE_REAL field;
 	getRecord(record);
 	D = 0;
 	while (getField(record,field))
@@ -78,7 +78,7 @@ void CSVReader::goTo(const int &idx)
 		getRecord(record);
 }
 
-int CSVReader::getField(std::string &record, float &field)
+int CSVReader::getField(std::string &record, DKK_TYPE_REAL &field)
 {
 	if (!record.length())
 		return 0;
@@ -124,7 +124,7 @@ int CSVReader::getLength()
 	return N;
 }
 
-int CSVReader::read(int idx, float* data)
+int CSVReader::read(int idx, DKK_TYPE_REAL* data)
 {
 	std::string record;
 	goTo(idx);

@@ -3,6 +3,7 @@
 
 #include <fstream>
 
+#include "Types.h"
 #include "PluginDefaultWindowsExport.h"
 #include "Reader.h"
 
@@ -18,7 +19,7 @@ public:
 	
 	int getDimensionality();
 	int getLength();
-	int read(int idx, float* data);
+	int read(int idx, DKK_TYPE_REAL* data);
 private:
 	std::ifstream fin;
 	std::string fs;
@@ -27,7 +28,7 @@ private:
 	void rewind();
 	void goTo(const int &idx);
 
-	int getField(std::string &record, float &field);
+	int getField(std::string &record, DKK_TYPE_REAL &field);
 	int getRecord(std::string &record);
 };
 

@@ -13,7 +13,7 @@ public:
 	void init();
 	void execute();
 private:
-	float *d_data, *d_dst;
+	DKK_TYPE_REAL *d_data, *d_dst;
 };
 
 }

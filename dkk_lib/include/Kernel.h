@@ -1,6 +1,7 @@
 #ifndef DKK_KERNEL_H
 #define DKK_KERNEL_H
 
+#include "Types.h"
 #include "WindowsExport.h"
 #include "Unit.h"
 #include "DistributedArray2D.h"
@@ -14,7 +15,7 @@ public:
 		return type;
 	}
 
-	virtual void compute(Array2D<float> &dataset, DistributedArray2D<float> &K)=0;
+	virtual void compute(Array2D<DKK_TYPE_REAL> &dataset, DistributedArray2D<DKK_TYPE_REAL> &K)=0;
 };
 
 }

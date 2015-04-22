@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 
+#include "Types.h"
 #include "Configurator.h"
 #include "Worker.h"
 #include "Primitive.h"
@@ -18,10 +19,10 @@ int main(int argc, char** argv)
 
 	Communicator &comm = conf.getCommunicator();
 
-	Array2D<float> *data;
-	DistributedArray2D<float> *K;
-	Array2D<int> *labels_;
-	DistributedArray2D<int> *labels;
+	Array2D<DKK_TYPE_REAL> *data;
+	DistributedArray2D<DKK_TYPE_REAL> *K;
+	Array2D<DKK_TYPE_INT> *labels_;
+	DistributedArray2D<DKK_TYPE_INT> *labels;
 
 	//get algorithm units
 	Reader &reader = conf.getReader();
@@ -30,17 +31,17 @@ int main(int argc, char** argv)
 	Iterator &iterator = conf.getIterator();
 
 	//load dataset
-	data = new Array2D<float>(reader.getLength(), reader.getDimensionality());
+	data = new Array2D<DKK_TYPE_REAL>(reader.getLength(), reader.getDimensionality());
 	for (int i = 0; i < data->rows(); i++)
 		reader.read(i, data->bff(i));
 	
 	//compute the kernel
-	K = new DistributedArray2D<float>(comm, data->rows(), data->rows());
+	K = new DistributedArray2D<DKK_TYPE_REAL>(comm, data->rows(), data->rows());
 	kernel.compute(*data, *K);
 
 	//init the labels
-	labels = new DistributedArray2D<int>(comm, data->rows());
-	labels_ = new Array2D<int>(data->rows());
+	labels = new DistributedArray2D<DKK_TYPE_INT>(comm, data->rows());
+	labels_ = new Array2D<DKK_TYPE_INT>(data->rows());
 	initializer.label(*data, *K, *labels);
 	comm.allgather(*labels, *labels_);
 

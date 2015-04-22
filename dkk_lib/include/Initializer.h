@@ -1,6 +1,7 @@
 #ifndef DKK_INITIALIZER_H
 #define DKK_INITIALIZER_H
 
+#include "Types.h"
 #include "WindowsExport.h"
 #include "Unit.h"
 #include "Array2D.h"
@@ -15,7 +16,7 @@ public:
 		return type;
 	}
 
-	virtual void label(Array2D<float> &data, DistributedArray2D<float> &K, DistributedArray2D<int> &labels)=0;
+	virtual void label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_TYPE_REAL> &K, DistributedArray2D<DKK_TYPE_INT> &labels)=0;
 };
 
 }

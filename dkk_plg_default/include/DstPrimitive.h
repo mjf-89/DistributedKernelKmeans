@@ -3,6 +3,7 @@
 
 #include "PluginDefaultWindowsExport.h"
 
+#include "Types.h"
 #include "Worker.h"
 #include "Primitive.h"
 #include "DistributedArray2D.h"
@@ -17,19 +18,19 @@ public:
 		return name;
 	}
 
-	void setDataArray(Array2D<float> &data) 
+	void setDataArray(Array2D<DKK_TYPE_REAL> &data) 
 	{
 		this->data = &data;
 	}
 
-	void setDstArray(DistributedArray2D<float> &dst)
+	void setDstArray(DistributedArray2D<DKK_TYPE_REAL> &dst)
 	{
 		this->dst = &dst;
 	}
 
 protected:
-	Array2D<float> *data;
-	DistributedArray2D<float> *dst;
+	Array2D<DKK_TYPE_REAL> *data;
+	DistributedArray2D<DKK_TYPE_REAL> *dst;
 };
 
 }

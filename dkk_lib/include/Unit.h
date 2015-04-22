@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 
+#include "Types.h"
 #include "WindowsExport.h"
 #include "Worker.h"
 

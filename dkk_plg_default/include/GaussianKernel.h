@@ -1,6 +1,7 @@
 #ifndef DKK_GAUSSIANKERNEL_H
 #define DKK_GAUSSIANKERNEL_H
 
+#include "Types.h"
 #include "PluginDefaultWindowsExport.h"
 #include "Kernel.h"
 #include "DistributedArray2D.h"
@@ -15,11 +16,9 @@ public:
 
 	void init();
 
-	void compute(Array2D<float> &dataset, DistributedArray2D<float> &K);
+	void compute(Array2D<DKK_TYPE_REAL> &dataset, DistributedArray2D<DKK_TYPE_REAL> &K);
 private:
-	float k;
-
-	float dst(float *va, float *vb, int d);
+	DKK_TYPE_REAL k;
 };
 
 }

@@ -1,0 +1,13 @@
+#ifndef DKK_TYPES_H
+#define DKK_TYPES_H
+
+#define DKK_TYPE_REAL @DKK_TYPE_REAL@
+#define DKK_TYPE_INT @DKK_TYPE_INT@
+
+#include <mpi.h>
+#define DKK_TYPE_MPI_REAL @DKK_TYPE_MPI_REAL@
+#define DKK_TYPE_MPI_INT @DKK_TYPE_MPI_INT@
+
+
+
+#endif

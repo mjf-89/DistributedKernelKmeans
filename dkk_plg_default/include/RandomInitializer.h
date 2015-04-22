@@ -3,6 +3,7 @@
 
 #include <fstream>
 
+#include "Types.h"
 #include "PluginDefaultWindowsExport.h"
 #include "Initializer.h"
 #include "Array2D.h"
@@ -18,7 +19,7 @@ public:
 
 	void init();
 
-	void label(Array2D<float> &data, DistributedArray2D<float> &K, DistributedArray2D<int> &labels);
+	void label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_TYPE_REAL> &K, DistributedArray2D<DKK_TYPE_INT> &labels);
 private:
 	int seed, NC;
 };

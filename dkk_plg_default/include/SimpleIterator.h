@@ -3,6 +3,7 @@
 
 #include <fstream>
 
+#include "Types.h"
 #include "PluginDefaultWindowsExport.h"
 #include "Iterator.h"
 #include "Array2D.h"
@@ -18,15 +19,15 @@ public:
 
 	void init();
 
-	void prepare(const DistributedArray2D<float> &K, const DistributedArray2D<int> &labels);
-	void update(const DistributedArray2D<float> &K, const Array2D<int> &labels);
-	int reassign(const DistributedArray2D<float> &K, DistributedArray2D<int> &labels);
+	void prepare(const DistributedArray2D<DKK_TYPE_REAL> &K, const DistributedArray2D<DKK_TYPE_INT> &labels);
+	void update(const DistributedArray2D<DKK_TYPE_REAL> &K, const Array2D<DKK_TYPE_INT> &labels);
+	int reassign(const DistributedArray2D<DKK_TYPE_REAL> &K, DistributedArray2D<DKK_TYPE_INT> &labels);
 private:
 	int NC;
 
-	DistributedArray2D<float> *f;
-	Array2D<float> *g;
-	Array2D<int> *C;
+	DistributedArray2D<DKK_TYPE_REAL> *f;
+	Array2D<DKK_TYPE_REAL> *g;
+	Array2D<DKK_TYPE_INT> *C;
 };
 
 }

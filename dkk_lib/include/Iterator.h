@@ -1,6 +1,7 @@
 #ifndef DKK_ITERATOR_H
 #define DKK_ITERATOR_H
 
+#include "Types.h"
 #include "WindowsExport.h"
 #include "Unit.h"
 #include "Array2D.h"
@@ -15,9 +16,9 @@ public:
 		return type;
 	}
 
-	virtual void prepare(const DistributedArray2D<float> &K, const DistributedArray2D<int> &labels)=0;
-	virtual void update(const DistributedArray2D<float> &K, const Array2D<int> &labels)=0;
-	virtual int reassign(const DistributedArray2D<float> &K, DistributedArray2D<int> &labels)=0;
+	virtual void prepare(const DistributedArray2D<DKK_TYPE_REAL> &K, const DistributedArray2D<DKK_TYPE_INT> &labels)=0;
+	virtual void update(const DistributedArray2D<DKK_TYPE_REAL> &K, const Array2D<DKK_TYPE_INT> &labels)=0;
+	virtual int reassign(const DistributedArray2D<DKK_TYPE_REAL> &K, DistributedArray2D<DKK_TYPE_INT> &labels)=0;
 };
 
 }

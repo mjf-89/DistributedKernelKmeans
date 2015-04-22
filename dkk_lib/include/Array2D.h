@@ -1,6 +1,7 @@
 #ifndef DKK_ARRAY2D_H
 #define DKK_ARRAY2D_H
 
+#include "Types.h"
 #include <stdlib.h>
 
 namespace DKK{
