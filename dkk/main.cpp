@@ -44,12 +44,12 @@ int main(int argc, char** argv)
 	initializer.label(*data, *K, *labels);
 	comm.allgather(*labels, *labels_);
 
-	iterator.prepare(*K, *labels_);
+	iterator.prepare(*K, *labels);
 	int notconverge=0;
 	do{
+		comm.allgather(*labels, *labels_);
 		iterator.update(*K, *labels_);
 		notconverge=iterator.reassign(*K, *labels);
-		comm.allgather(*labels, *labels_);
 
 		if(!comm.getRank()) std::cout<<notconverge<<"\n";
 	}while(notconverge);

@@ -36,7 +36,7 @@ void SimpleIterator::init()
 	return;
 }
 
-void SimpleIterator::prepare(const DistributedArray2D<float> &K, const Array2D<int> &labels)
+void SimpleIterator::prepare(const DistributedArray2D<float> &K, const DistributedArray2D<int> &labels)
 {
 	f = new DistributedArray2D<float>(Configurator::getCommunicator(), K.grows(), NC);
 	g = new Array2D<float>(NC);
@@ -56,6 +56,8 @@ void SimpleIterator::update(const DistributedArray2D<float> &K, const Array2D<in
 
 	f->fill(0.0);
 	g->fill(0.0);
+	
+	Configurator::getCommunicator().allreducesum(*C);
 
 	for(int i=0; i<K.rows(); i++){
 		for(int j=0; j<K.cols(); j++){
@@ -70,6 +72,8 @@ void SimpleIterator::update(const DistributedArray2D<float> &K, const Array2D<in
 		}
 	}
 
+	Configurator::getCommunicator().allreducesum(*g);
+
 	return;
 }
 
@@ -77,15 +81,13 @@ int SimpleIterator::reassign(const DistributedArray2D<float> &K, DistributedArra
 {
 	int reassign=0;
 
-	Configurator::getCommunicator().allreducesum(*g);
-
 	C->fill(0);
 	for(int i=0; i<labels.rows(); i++){
 		float min=f->idx(i,0)+g->idx(0);
 		int min_idx=0;
 		for(int j=1; j<NC; j++){
-			if(f->idx(i,j)+g->idx(i,j)<min){
-				min = f->idx(i,j)+g->idx(i,j);
+			if(f->idx(i,j)+g->idx(j)<min){
+				min = f->idx(i,j)+g->idx(j);
 				min_idx = j;
 			}
 		}
@@ -96,7 +98,6 @@ int SimpleIterator::reassign(const DistributedArray2D<float> &K, DistributedArra
 		C->idx(min_idx) += 1;
 	}
 
-	Configurator::getCommunicator().allreducesum(*C);
 	Configurator::getCommunicator().allreducesum(reassign);
 
 	return reassign;

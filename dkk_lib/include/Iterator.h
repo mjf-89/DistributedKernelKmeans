@@ -15,7 +15,7 @@ public:
 		return type;
 	}
 
-	virtual void prepare(const DistributedArray2D<float> &K, const Array2D<int> &labels)=0;
+	virtual void prepare(const DistributedArray2D<float> &K, const DistributedArray2D<int> &labels)=0;
 	virtual void update(const DistributedArray2D<float> &K, const Array2D<int> &labels)=0;
 	virtual int reassign(const DistributedArray2D<float> &K, DistributedArray2D<int> &labels)=0;
 };
