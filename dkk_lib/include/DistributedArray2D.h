@@ -18,7 +18,9 @@ public:
 	inline const int &gcols() const { return gc; }
 
 	inline T &gidx(const int &i) {return this->idx(i-r_off);}
+	inline const T &gidx(const int &i) const{return this->idx(i-r_off);}
 	inline T &gidx(const int &i, const int &j) {return this->idx(i-r_off, j);}
+	inline const T &gidx(const int &i, const int &j) const {return this->idx(i-r_off, j);}
 
 	void ltgIdx(const int &li, const int &lj, int &gi, int &gj) const;
 	void gtlIdx(const int &gi, const int &gj, int &li, int &lj) const;

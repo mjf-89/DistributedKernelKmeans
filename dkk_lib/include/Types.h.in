@@ -8,6 +8,4 @@
 #define DKK_TYPE_MPI_REAL @DKK_TYPE_MPI_REAL@
 #define DKK_TYPE_MPI_INT @DKK_TYPE_MPI_INT@
 
-
-
 #endif

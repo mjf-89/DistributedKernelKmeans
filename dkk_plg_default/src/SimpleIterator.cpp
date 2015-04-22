@@ -103,4 +103,18 @@ int SimpleIterator::reassign(const DistributedArray2D<DKK_TYPE_REAL> &K, Distrib
 	return reassign;
 }
 
+DKK_TYPE_REAL SimpleIterator::cost(const DistributedArray2D<DKK_TYPE_REAL> &K, const DistributedArray2D<DKK_TYPE_INT> &labels){
+	DKK_TYPE_REAL c=0.0;
+	int ci, gi, gj;
+	for(int i=0; i<K.rows(); i++){
+		labels.ltgIdx(i,0,gi,gj);
+		ci = labels.idx(i);
+		c += K.gidx(gi,gi) + f->idx(i, ci) + g->idx(ci);
+	}
+
+	Configurator::getCommunicator().allreducesum(c);
+
+	return c;
+}
+
 }

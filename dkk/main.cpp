@@ -47,12 +47,13 @@ int main(int argc, char** argv)
 
 	iterator.prepare(*K, *labels);
 	int notconverge=0;
+	DKK_TYPE_REAL cost;
 	do{
 		comm.allgather(*labels, *labels_);
 		iterator.update(*K, *labels_);
 		notconverge=iterator.reassign(*K, *labels);
-
-		if(!comm.getRank()) std::cout<<notconverge<<"\n";
+		cost = iterator.cost(*K, *labels);
+		if(!comm.getRank()) std::cout<<cost<<"\n";
 	}while(notconverge);
 
 
