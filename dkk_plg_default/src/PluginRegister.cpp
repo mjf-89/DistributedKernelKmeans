@@ -4,6 +4,7 @@
 #include "CPUDstPrimitive.h"
 #include "GaussianKernel.h"
 #include "CSVReader.h"
+#include "MNISTReader.h"
 #include "RandomInitializer.h"
 #include "SimpleIterator.h"
 
@@ -11,6 +12,7 @@
 extern "C" DKK_PLUGIN_DEFAULT_EXPORT void registerUnits()
 {
 	DKK::Configurator::registerUnit(new DKK::CSVReader());
+	DKK::Configurator::registerUnit(new DKK::MNISTReader());
 	DKK::Configurator::registerUnit(new DKK::GaussianKernel());
 	DKK::Configurator::registerUnit(new DKK::RandomInitializer());
 	DKK::Configurator::registerUnit(new DKK::SimpleIterator());

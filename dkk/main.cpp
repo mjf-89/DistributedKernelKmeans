@@ -31,20 +31,24 @@ int main(int argc, char** argv)
 	Iterator &iterator = conf.getIterator();
 
 	//load dataset
-	data = new Array2D<DKK_TYPE_REAL>(reader.getLength(), reader.getDimensionality());
+	if(!comm.getRank()) std::cerr<<"Loading dataset ...\n";
+	data = new Array2D<DKK_TYPE_REAL>(10000, reader.getDimensionality());
 	for (int i = 0; i < data->rows(); i++)
 		reader.read(i, data->bff(i));
-	
+
 	//compute the kernel
+	if(!comm.getRank()) std::cerr<<"Computing kernel ...\n";
 	K = new DistributedArray2D<DKK_TYPE_REAL>(comm, data->rows(), data->rows());
 	kernel.compute(*data, *K);
 
 	//init the labels
+	if(!comm.getRank()) std::cerr<<"Initializing labels ...\n";
 	labels = new DistributedArray2D<DKK_TYPE_INT>(comm, data->rows());
 	labels_ = new Array2D<DKK_TYPE_INT>(data->rows());
 	initializer.label(*data, *K, *labels);
 	comm.allgather(*labels, *labels_);
 
+	if(!comm.getRank()) std::cerr<<"Iterating kernel k-means ...\n";
 	iterator.prepare(*K, *labels);
 	int notconverge=0;
 	DKK_TYPE_REAL cost;
@@ -53,7 +57,7 @@ int main(int argc, char** argv)
 		iterator.update(*K, *labels_);
 		notconverge=iterator.reassign(*K, *labels);
 		cost = iterator.cost(*K, *labels);
-		if(!comm.getRank()) std::cout<<cost<<"\n";
+		if(!comm.getRank()) std::cerr<<cost<<"\n";
 	}while(notconverge);
 
 
