@@ -1,0 +1,13 @@
+PROJECT(XTC)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+
+SET(XTC_TARGET xtc)
+SET(XTC_SRC	src/xdrfile.c
+		src/xdrfile_xtc.c
+)
+SET(XTC_INC	include/xdrfile.h
+		include/xdrfile_xtc.h
+)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+ADD_LIBRARY(${XTC_TARGET} SHARED ${XTC_SRC} ${XTC_INC})
