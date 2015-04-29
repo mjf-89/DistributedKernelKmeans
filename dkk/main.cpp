@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 
 	//load dataset
 	if(!comm.getRank()) std::cerr<<"Loading dataset ...\n";
-	data = new Array2D<DKK_TYPE_REAL>(10000, reader.getDimensionality());
+	data = new Array2D<DKK_TYPE_REAL>(reader.getLength(), reader.getDimensionality());
 	for (int i = 0; i < data->rows(); i++)
 		reader.read(i, data->bff(i));
 
