@@ -26,6 +26,7 @@ private:
 	std::string fin_name;
 	XDRFILE *fin;
 	std::vector<int> atoms;
+	std::vector<DKK_TYPE_OFF> frameIndex;
 
 	int n_atoms, step;
 	float time, prec;
@@ -33,12 +34,11 @@ private:
 	rvec *coord;
 	
 	int D, N;
-	long long record_idx;
 
+	void createFrameIndex();
 	void openFile();
 	void goTo(const int &idx);
-	int goToEOF();
-	int skipFrame();
+	DKK_TYPE_OFF skipFrame();
 };
 
 }

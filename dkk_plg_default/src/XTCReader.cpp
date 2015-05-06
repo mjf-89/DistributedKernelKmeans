@@ -4,6 +4,8 @@
 #include "xdrfile.h"
 #include "xdrfile_xtc.h"
 
+#include "FileUtils.h"
+
 namespace DKK{
 
 const std::string &XTCReader::getName()
@@ -33,6 +35,7 @@ const std::vector<std::string> &XTCReader::getReqPrimitiveNames()
 
 void XTCReader::init()
 {
+	fin=NULL;
 	//open input file
 	getParameter("IN", fin_name);
 	openFile();
@@ -53,63 +56,75 @@ void XTCReader::init()
 			D += atoms[i]-atoms[i-1]+1;
 	D *= 3;
 
+	createFrameIndex();
 
-	record_idx = 0;
+	N=frameIndex.size();
+}
 
-	N=goToEOF();
+void XTCReader::createFrameIndex()
+{
+	frameIndex.clear();
+	DKK_TYPE_OFF offset=0;
+	while(true){
+		frameIndex.push_back(offset);
+		try{
+			offset = skipFrame();
+		}catch(...){
+			break;
+		}
+	}
+	frameIndex.pop_back();
+	goTo(0);
 }
 
 void XTCReader::goTo(const int &idx)
 {
-	if(idx<record_idx)
-		openFile();
-
-	while(idx>record_idx)
-		skipFrame();
-}
-
-int XTCReader::goToEOF()
-{
-	while(skipFrame());
-
-	return record_idx;
+	dkk_fseek(xdrfile_get_cfile(fin), frameIndex[idx], 0);
 }
 
 void XTCReader::openFile()
 {
-	xdrfile_close(fin);	
+	if(fin!=NULL)
+		xdrfile_close(fin);
 	fin=xdrfile_open(fin_name.c_str(), "r");
-	record_idx = 0;
 }
 
-int XTCReader::skipFrame()
+DKK_TYPE_OFF XTCReader::skipFrame()
 {
-	unsigned int offset=0;	
+	DKK_TYPE_OFF offset=0;	
 	int data_length=0;
 	int BYTES_PER_XDR_UNIT=4;
 
-	/* skip header: skip 3int,1float */
+	//retrive current file offset
+	offset = dkk_ftell(xdrfile_get_cfile(fin));
+	//skip header: skip 3int,1float
 	offset += 16;
-	/* skip box: skip 9float */
+	//skip box: skip 9float
 	offset += 36;
-	/* skip header-data */
+	//skip header-data
 	offset += 36;
-	if(xdrfile_skip_bytes(offset, fin))
+
+	//seek file
+	dkk_fseek(xdrfile_get_cfile(fin), offset, 0);
+	if(ferror(xdrfile_get_cfile(fin)))
 		return 0;
 
-	xdrfile_read_int(&data_length, 1, fin);
+	//get frame data length
+	if(!xdrfile_read_int(&data_length, 1, fin))
+		throw 1;
 
-	/* skip data */
-	offset = 0;
+	offset += 4;
+	//round the number of bytes to fill xdr units
 	int rndup = data_length % BYTES_PER_XDR_UNIT;
 	rndup = rndup > 0 ? BYTES_PER_XDR_UNIT - rndup : 0;
+
+	//skip frame data
 	offset += (data_length + rndup);
 
-	xdrfile_skip_bytes(offset, fin);
+	//seek file
+	fseek(xdrfile_get_cfile(fin), offset, 0);
 
-	record_idx++;
-
-	return 1;
+	return offset;
 }
 
 int XTCReader::getDimensionality()
@@ -126,7 +141,6 @@ int XTCReader::read(int idx, DKK_TYPE_REAL* data)
 {
 	goTo(idx);
 	read_xtc(fin, n_atoms, &step, &time, box, coord, &prec);
-	record_idx++;
 
 	int k = 0;
 	for(int i=0; i<atoms.size(); i+=2){
