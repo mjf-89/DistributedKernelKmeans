@@ -1,0 +1,11 @@
+#ifndef DKK_CONFIG_H
+#define DKK_CONFIG_H
+
+//large file support
+#cmakedefine _LARGEFILE_SOURCE
+#cmakedefine _LARGE_FILES
+#cmakedefine _FILE_OFFSET_BITS @_FILE_OFFSET_BITS@
+#cmakedefine HAVE_FSEEKO
+#cmakedefine HAVE__FSEEKI64
+
+#endif

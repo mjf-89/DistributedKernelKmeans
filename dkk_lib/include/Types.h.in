@@ -1,6 +1,42 @@
 #ifndef DKK_TYPES_H
 #define DKK_TYPES_H
 
+#include <limits.h>
+#if (INT_MAX == 2147483647)                                                                                             
+#	define DKK_TYPE_INT32 int                                                                                                 
+#	define DKK_TYPE_UINT32 unsigned int                                                                                       
+#	define DKK_LIMIT_INT32_MAX 2147483647                                                                                        
+#elif (LONG_MAX == 2147483647)                                                                                          
+#	define DKK_TYPE_INT32 long                                                                                                 
+#	define DKK_TYPE_UINT32 unsigned long                                                                                       
+#	define DKK_LIMIT_INT32_MAX 2147483647                                                                                        
+#else
+#	warning WARNING: No 32 bit wide integer type found!
+#endif
+
+#if (INT_MAX == 9223372036854775807L)                                                                                             
+#	define DKK_TYPE_INT64 int                                                                                                 
+#	define DKK_TYPE_UINT64 unsigned int                                                                                       
+#	define DKK_LIMIT_INT64_MAX 9223372036854775807L                                                                                        
+#elif (LONG_MAX == 9223372036854775807L)                                                                                          
+#	define DKK_TYPE_INT64 long                                                                                                 
+#	define DKK_TYPE_UINT64 unsigned long                                                                                      
+#	define DKK_LIMIT_INT64_MAX 9223372036854775807L                                                                                        
+#elif (LLONG_MAX == 9223372036854775807L)                                                                                          
+#	define DKK_TYPE_INT64 long long                                                                                                 
+#	define DKK_TYPE_UINT64 unsigned long long                                                                                      
+#	define DKK_LIMIT_INT64_MAX 9223372036854775807L                                                                                        
+#else
+#	warning WARNING: No 64 bit wide integer type found!
+#endif
+
+#ifdef DKK_TYPE_INT64
+#	define DKK_TYPE_OFF DKK_TYPE_INT64
+#else
+#	define DKK_TYPE_OFF int
+#	warning WARNING: File offset type set to int, files larger then 2GB wont be addressed correctly
+#endif
+
 #define DKK_TYPE_REAL @DKK_TYPE_REAL@
 #define DKK_TYPE_INT @DKK_TYPE_INT@
 
