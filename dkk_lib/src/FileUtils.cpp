@@ -1,5 +1,9 @@
+#include <stdio.h>
+#include "FileUtils.h"
 #include "Config.h"
 #include "Types.h"
+
+namespace DKK{
 
 int dkk_fseek(FILE *stream, DKK_TYPE_OFF offset, int whence)
 {
@@ -25,4 +29,5 @@ DKK_TYPE_OFF dkk_ftell(FILE *stream)
 	return ftell(stream);
 #endif
 #endif
+}
 }
