@@ -78,6 +78,8 @@
 #ifndef _XDRFILE_H_
 #define _XDRFILE_H_
 
+#include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" 
 {
@@ -141,8 +143,22 @@ extern "C"
 	xdrfile_close   (XDRFILE *       xfp);
 
 
-	int
-	xdrfile_skip_bytes(unsigned int nbytes, XDRFILE* xfp);
+
+	/*! \brief get the C file handler used within XDRFILE datastructure 
+	 *
+	 *  Use this routine to retrive the standard C file handler used within the 
+	 *  XDRFILE datastructure. This is meant to be used along with 64-bit safe 
+	 *  fseek/ftell functions which are not provided with this library.
+	 *
+	 *  \param xfp    Handle to portable binary file, created with xdrfile_open()
+	 *
+	 *  \return Pointer to abstract the standard C file handler used within xfp.
+	 *
+	 */
+	FILE *
+	xdrfile_get_cfile(XDRFILE *xfp);
+
+
 
 	/*! \brief Read one or more \a char type variable(s) 
 	 *

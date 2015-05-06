@@ -228,6 +228,11 @@ xdrfile_close(XDRFILE *xfp)
 	return ret; /* return 0 if ok */
 }
 
+FILE *
+xdrfile_get_cfile(XDRFILE *xfp)
+{
+	return xfp->fp;
+}
 
 
 int 
@@ -2255,18 +2260,6 @@ xdrstdio_getbytes (XDR *xdrs, char *addr, unsigned int len)
 							  (FILE *) xdrs->x_private) != 1))
 		return 0;
 	return 1;
-}
-
-int
-xdrfile_skip_bytes(unsigned int nbytes, XDRFILE* xfp)
-{
-	int i;
-	char skip;
-	for(i=0; i<nbytes; i++)
-		if(!xdrstdio_getbytes ((XDR *)(xfp->xdr), &skip, 1))
-			return 1;
-
-	return 0;
 }
 
 static int
