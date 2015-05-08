@@ -1,7 +1,5 @@
-#include <math.h>
-
 #include "GaussianKernel.h"
-#include "DstPrimitive.h"
+#include "GaussianEuclideanPrimitive.h"
 
 namespace DKK{
 const std::string &GaussianKernel::getName()
@@ -25,7 +23,7 @@ const std::vector<std::string> &GaussianKernel::getReqPrimitiveNames()
 {
 	//stupid fix to avoid c++ 11 init lists
 	static std::string reqPrimitiveNamesA[] = {
-		"DstPrimitive"
+		"GaussianEuclideanPrimitive"
 	};
 	static std::vector<std::string> reqPrimitiveNames(reqPrimitiveNamesA, reqPrimitiveNamesA+1);
 
@@ -34,22 +32,17 @@ const std::vector<std::string> &GaussianKernel::getReqPrimitiveNames()
 
 void GaussianKernel::init()
 {
-	float sigma;
 	getParameter("SIGMA", sigma);
-	k = 0.5 / sigma / sigma;
 }
 
 void GaussianKernel::compute(Array2D<DKK_TYPE_REAL> &dataset, DistributedArray2D<DKK_TYPE_REAL> &K)
 {
-	DstPrimitive &dst = (DstPrimitive&) getWorker().getPrimitive("DstPrimitive");
+	GaussianEuclideanPrimitive &ge = (GaussianEuclideanPrimitive&) getWorker().getPrimitive("GaussianEuclideanPrimitive");
 
-	dst.setDataArray(dataset);
-	dst.setDstArray(K);
-	dst.execute();
-
-	for(int i=0; i<K.rows(); i++)
-		for(int j=0; j<K.cols(); j++)
-			K.idx(i,j) =  exp(-K.idx(i,j)*k);
+	ge.setDataArray(dataset);
+	ge.setKernelArray(K);
+	ge.setSigma(sigma);
+	ge.execute();
 
 	return;
 }

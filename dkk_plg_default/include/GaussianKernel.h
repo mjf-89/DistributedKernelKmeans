@@ -18,7 +18,7 @@ public:
 
 	void compute(Array2D<DKK_TYPE_REAL> &dataset, DistributedArray2D<DKK_TYPE_REAL> &K);
 private:
-	DKK_TYPE_REAL k;
+	DKK_TYPE_REAL sigma;
 };
 
 }
