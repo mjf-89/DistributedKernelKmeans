@@ -2,14 +2,18 @@
 
 #include "CPUWorker.h"
 #include "CPUDstPrimitive.h"
+#include "CPUGaussianEuclideanPrimitive.h"
+
 #include "GaussianKernel.h"
+
 #include "CSVReader.h"
 #include "MNISTReader.h"
 #include "XTCReader.h"
+
 #include "RandomInitializer.h"
+
 #include "SimpleIterator.h"
 
-#include <iostream>
 extern "C" DKK_PLUGIN_DEFAULT_EXPORT void registerUnits()
 {
 	DKK::Configurator::registerUnit(new DKK::CSVReader());
@@ -25,6 +29,7 @@ extern "C" DKK_PLUGIN_DEFAULT_EXPORT void registerUnits()
 	DKK::Worker *worker = new DKK::CPUWorker();
 	DKK::Configurator::registerWorker(worker);
 	worker->registerPrimitive(new DKK::CPUDstPrimitive());
+	worker->registerPrimitive(new DKK::CPUGaussianEuclideanPrimitive());
 
 	return;
 }
