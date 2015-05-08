@@ -89,4 +89,25 @@ int Unit::getParameter(const std::string &name, std::vector<float> &prm)
 	return prm.size();
 }
 
+int Unit::getParameter(const std::string &name, double &prm)
+{
+	std::string sprm; 
+	getParameter(name, sprm);
+
+	prm = atof(sprm.c_str());
+	return 1;
+}
+
+int Unit::getParameter(const std::string &name, std::vector<double> &prm)
+{
+	std::vector<std::string> sprm;
+	getParameter(name, sprm);
+
+	prm.clear();
+	for (int i = 0; i < sprm.size(); i++)
+		prm.push_back(atof(sprm[i].c_str()));
+
+	return prm.size();
+}
+
 }

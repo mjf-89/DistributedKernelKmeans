@@ -36,6 +36,8 @@ public:
 	int getParameter(const std::string &name, std::vector<int> &prm);
 	int getParameter(const std::string &name, float &prm);
 	int getParameter(const std::string &name, std::vector<float> &prm);
+	int getParameter(const std::string &name, double &prm);
+	int getParameter(const std::string &name, std::vector<double> &prm);
 };
 
 }
