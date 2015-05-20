@@ -1,5 +1,6 @@
 #include <stdlib.h>
 
+#include "Exception.h"
 #include "CSVReader.h"
 
 namespace DKK{
@@ -41,11 +42,16 @@ void CSVReader::init()
 
 	//set separator string
 	getParameter("SEPARATOR", fs);
+	escapeString(fs);
 
 	//read dimensionality
 	std::string record;
 	DKK_TYPE_REAL field;
-	getRecord(record);
+	try{
+		record=getRecord();
+	}catch(Exception &e){
+		throw Exception("IO error, empty CSV file.");
+	}
 	D = 0;
 	while (getField(record,field))
 		D++;
@@ -53,9 +59,36 @@ void CSVReader::init()
 
 	//read length
 	N=0;
-	while (getRecord(record))
-		N++;
-	rewind();
+	try{
+		while (1){
+			getRecord();
+			N++;
+		}
+	}catch(Exception &e){
+		rewind();
+	}
+}
+
+void CSVReader::escapeString(std::string &str)
+{
+	int i=0;
+	while(i<str.length()){
+		if(str[i]=='\\' && i+1<str.length()){
+			str.erase(i,1);
+			switch(str[i]){
+			case 'n':
+				str[i]='\n';
+				break;
+			case 't':
+				str[i]='\t';
+				break;
+			case '\\':
+				str[i]='\\';
+				break;
+			}
+		}
+		i++;
+	}
 }
 
 void CSVReader::rewind()
@@ -70,23 +103,26 @@ void CSVReader::goTo(const int &idx)
 	std::string record;
 
 	if (idx > N)
-		throw 1;
+		throw(Exception("IO error, trying to read a record beyond EOF."));
 
 	if (idx<record_idx)
 		rewind();
 	while (record_idx < idx)
-		getRecord(record);
+		record=getRecord();
 }
 
 int CSVReader::getField(std::string &record, DKK_TYPE_REAL &field)
 {
-	if (!record.length())
-		return 0;
-	
 	int idx;
+	//stripe initial field separators
 	while (!(idx = record.find(fs, 0)))
 		record.erase(0, fs.length());
 
+	//check if the record is not empty
+	if (!record.length())
+		return 0;
+
+	//read the field
 	if (idx != std::string::npos){
 		field = atof(record.substr(0, idx).c_str());
 		record.erase(0, idx);
@@ -98,8 +134,9 @@ int CSVReader::getField(std::string &record, DKK_TYPE_REAL &field)
 	return 1;
 }
 
-int CSVReader::getRecord(std::string &record)
+std::string CSVReader::getRecord()
 {
+	std::string record;
 	char c;
 
 	record.clear();
@@ -108,10 +145,10 @@ int CSVReader::getRecord(std::string &record)
 
 	record_idx++;
 
-	if (record.length())
-		return 1;
+	if (!record.length())
+		throw(Exception("IO error, EoF"));
 
-	return 0;
+	return record;
 }
 
 int CSVReader::getDimensionality()
@@ -128,10 +165,10 @@ int CSVReader::read(int idx, DKK_TYPE_REAL* data)
 {
 	std::string record;
 	goTo(idx);
-	getRecord(record);
+	record=getRecord();
 	for (int i = 0; i < D; i++)
 		if (!getField(record, data[i]))
-			throw 1;
+			throw("IO error, bad CSV file.");
 
 	return 0;
 }

@@ -26,11 +26,13 @@ private:
 	int D, N;
 	long long record_idx;
 
+	void escapeString(std::string &str);
+
 	void rewind();
 	void goTo(const int &idx);
 
 	int getField(std::string &record, DKK_TYPE_REAL &field);
-	int getRecord(std::string &record);
+	std::string getRecord();
 };
 
 }
