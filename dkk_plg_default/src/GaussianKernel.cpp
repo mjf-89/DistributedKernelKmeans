@@ -42,6 +42,7 @@ void GaussianKernel::compute(Array2D<DKK_TYPE_REAL> &dataset, DistributedArray2D
 	ge.setDataArray(dataset);
 	ge.setKernelArray(K);
 	ge.setSigma(sigma);
+
 	ge.execute();
 
 	return;

@@ -1,5 +1,6 @@
 #include <stdlib.h>
 
+#include "Exception.h"
 #include "Unit.h"
 
 namespace DKK{
@@ -32,7 +33,7 @@ void Unit::setParameter(const std::string &name, const std::vector<std::string> 
 int Unit::getParameter(const std::string &name, std::string &prm)
 {
 	if (prms.find(name) == prms.end())
-		throw 1;
+		throw(Exception("Parameter not found."));
 
 	prm = prms[name][0];
 	return 1;
@@ -41,7 +42,7 @@ int Unit::getParameter(const std::string &name, std::string &prm)
 int Unit::getParameter(const std::string &name, std::vector<std::string> &prm)
 {
 	if (prms.find(name) == prms.end())
-		throw 1;
+		throw(Exception("Parameter not found."));
 
 	prm = prms[name];
 	return prm.size();

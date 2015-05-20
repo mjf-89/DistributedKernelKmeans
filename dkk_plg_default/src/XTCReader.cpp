@@ -1,5 +1,6 @@
 #include <stdlib.h>
 
+#include "Exception.h"
 #include "XTCReader.h"
 #include "xdrfile.h"
 #include "xdrfile_xtc.h"
@@ -47,7 +48,7 @@ void XTCReader::init()
 	//get the atom indexes to be considered
 	getParameter("ATOMS", atoms);
 	if(atoms.size()%2)
-		throw 1;
+		throw Exception("ATOMS parameter should specify couples of values as index bounds.");
 
 	//find the actual dimensionality of the dataset
 	D = 0;
@@ -69,7 +70,7 @@ void XTCReader::createFrameIndex()
 		frameIndex.push_back(offset);
 		try{
 			offset = skipFrame();
-		}catch(...){
+		}catch(Exception &e){
 			break;
 		}
 	}
@@ -111,7 +112,7 @@ DKK_TYPE_OFF XTCReader::skipFrame()
 
 	//get frame data length
 	if(!xdrfile_read_int(&data_length, 1, fin))
-		throw 1;
+		throw Exception("IO XTC error, cannot read data length.");
 
 	offset += 4;
 	//round the number of bytes to fill xdr units

@@ -31,7 +31,7 @@ private:
 	void rewind();
 	void goTo(const int &idx);
 
-	int getField(std::string &record, DKK_TYPE_REAL &field);
+	DKK_TYPE_REAL getField(std::string &record);
 	std::string getRecord();
 };
 

@@ -48,6 +48,7 @@ int main(int argc, char** argv)
 	initializer.label(*data, *K, *labels);
 	comm.allgather(*labels, *labels_);
 
+	//iterate
 	if(!comm.getRank()) std::cerr<<"Iterating kernel k-means ...\n";
 	iterator.prepare(*K, *labels);
 	int notconverge=0;
@@ -60,6 +61,12 @@ int main(int argc, char** argv)
 		if(!comm.getRank()) std::cerr<<cost<<"\n";
 	}while(notconverge);
 
+
+	for(int i=0; i<labels->rows(); i++){
+		for(int j=0; j<labels->cols(); j++){
+			std::cout<<labels->idx(i,j)<<"\n";	
+		}
+	}
 
 	delete data;
 	delete K;

@@ -19,7 +19,6 @@ void CPUGaussianEuclideanPrimitive::execute()
 			K->idx(i, j) = exp(-d*sigma_k);
 		}
 	}
-	
 }
 
 CPUGaussianEuclideanPrimitive::~CPUGaussianEuclideanPrimitive()

@@ -7,6 +7,7 @@
 #include <dlfcn.h>
 #endif
 
+#include "Exception.h"
 #include "Configurator.h"
 #include "Communicator.h"
 #include "Unit.h"
@@ -19,6 +20,8 @@ Configurator::Configurator(int *argc, char ***argv)
 {
 	comm = new Communicator(argc, argv);
 	conf_file.open((*argv)[1], std::ios::in);
+	if(conf_file==NULL)
+		throw(Exception("Cannot open configuration file."));
 
 	std::string line;
 	while (std::getline(conf_file,line))
@@ -38,9 +41,10 @@ Configurator::~Configurator()
 
 Configurator::Option &Configurator::getOption(std::string name)
 {
-	if (opts.find(name) != opts.end())
-		return opts.find(name)->second;
-	throw 1;
+	if (opts.find(name) == opts.end())
+		throw(Exception("Option not found."));
+
+	return opts.find(name)->second;
 }
 
 std::map<std::string, Unit*> Configurator::units;
@@ -51,10 +55,10 @@ void Configurator::registerUnit(Unit *unit)
 
 Unit & Configurator::getUnit(const std::string &name)
 {
-	if (units.find(name) != units.end())
-		return *units.find(name)->second;
+	if (units.find(name) == units.end())
+		throw(Exception("Unit not found."));
 
-	throw 1;
+	return *units.find(name)->second;
 }
 
 Communicator *Configurator::comm;
@@ -71,16 +75,16 @@ void Configurator::registerWorker(Worker *worker)
 
 Worker &Configurator::getWorker(const std::string &name)
 {
-	if (workers.find(name) != workers.end())
-		return *workers.find(name)->second;
+	if (workers.find(name) == workers.end())
+		throw(Exception("Worker not found."));
 
-	throw 1;
+	return *workers.find(name)->second;
 }
 
 Reader &Configurator::getReader()
 {
 	if (opts.find("READER") == opts.end())
-		throw 1;
+		throw(Exception("Reader not found."));
 
 	Option opt = opts.find("READER")->second;
 	return (Reader &)getUnitFromOption(opt);
@@ -89,7 +93,7 @@ Reader &Configurator::getReader()
 Kernel &Configurator::getKernel()
 {
 	if (opts.find("KERNEL") == opts.end())
-		throw 1;
+		throw(Exception("Kernel not found."));
 
 	Option opt = opts.find("KERNEL")->second;
 	return (Kernel &)getUnitFromOption(opt);
@@ -98,7 +102,7 @@ Kernel &Configurator::getKernel()
 Initializer &Configurator::getInitializer()
 {
 	if (opts.find("INITIALIZER") == opts.end())
-		throw 1;
+		throw("Initializer not found.");
 
 	Option opt = opts.find("INITIALIZER")->second;
 	return (Initializer &)getUnitFromOption(opt);
@@ -107,23 +111,26 @@ Initializer &Configurator::getInitializer()
 Iterator &Configurator::getIterator()
 {
 	if (opts.find("ITERATOR") == opts.end())
-		throw 1;
+		throw("Iterator not found.");
 
 	Option opt = opts.find("ITERATOR")->second;
 	return (Iterator &)getUnitFromOption(opt);
 }
 
-Unit &Configurator::getUnitFromOption(Option &opt){
-	if (units.find(opt.getValue()[0]) == units.end())
-		throw 1;
-
-	Unit &u = *units[opt.getValue()[0]];
+Unit &Configurator::getUnitFromOption(Option &opt)
+{
+	Unit &u = getUnit(opt.getValue()[0]);
 
 	//check for required parameters
-	for (int i = 0; i < u.getReqPrmNames().size(); i++)
-		if (opt.getPrm(u.getReqPrmNames()[i]).size() == 0)
-			throw 1;
-	//Unit parametrization
+	for (int i = 0; i < u.getReqPrmNames().size(); i++){
+		try{
+			opt.getPrm(u.getReqPrmNames()[i]);
+		}catch(Exception e){
+			throw(Exception("Cannot find required parameter."));
+		}
+	}
+
+	//perform Unit parametrization
 	for (std::map<std::string, std::vector<std::string> >::const_iterator i = opt.getPrms().begin(); i != opt.getPrms().end(); i++){
 		if (i->first != "VALUE")
 			u.setParameter(i->first, i->second);
@@ -131,12 +138,20 @@ Unit &Configurator::getUnitFromOption(Option &opt){
 
 	//check for required primitives
 	if(u.getReqPrimitiveNames().size()){
-		if(opt.getPrm("WORKER").size() == 0)
-			throw 1;
+		try{
+			opt.getPrm("WORKER");
+		}catch(Exception e){
+			throw(Exception("Worker not specified for a Unit which require some Primitives."));
+		}
 
 		u.setWorker(getWorker(opt.getPrm("WORKER")[0]));
-		for(int i=0; i<u.getReqPrimitiveNames().size(); i++)
-			u.getWorker().getPrimitive(u.getReqPrimitiveNames()[i]);
+		for(int i=0; i<u.getReqPrimitiveNames().size(); i++){
+			try{
+				u.getWorker().getPrimitive(u.getReqPrimitiveNames()[i]);
+			}catch(Exception e){
+				throw(Exception("Cannot find required Primitive."));
+			}
+		}
 	}
 
 	u.init();
@@ -159,21 +174,23 @@ void Configurator::loadPluginFile(const std::string &file)
 #ifdef WIN32
 	HMODULE handle = LoadLibrary(file.c_str());
 	if (handle == NULL)
-		throw 1;
+		throw(Exception("Cannot open plugin file."));
 
 	void (*reg)();
 	*(void **)(&reg) = GetProcAddress(handle, "registerUnits");
 	if (reg == NULL)
-		throw 1;
+		throw(Exception("Bad plugin file, cannot register Units."));
 
 	(*reg)();
 #else
 	void *handle = dlopen(file.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+	if (handle == NULL)
+		throw(Exception("Cannot open plugin file."));
 
 	void(*reg)(Configurator &);
 	*(void **)(&reg) = dlsym(handle, "registerUnits");
 	if (reg == NULL)
-		throw 1;
+		throw(Exception("Bad plugin file, cannot register Units."));
 
 	(*reg)(*this);
 #endif
@@ -184,14 +201,31 @@ Configurator::Option::Option(std::string opt_line)
 	std::vector<std::string> stack;
 	std::string tkn, prv_tkn;
 
+	/***
+	* very simple parser, we parse strings with the following format: 
+	*
+	* opt={value1 value2 value3 ...} prms={values} ...
+	*
+	* we built a stack:	|opt	|
+	*			|value1	|
+	*			|value2	|
+	*			|value3	|
+	*			|...	|
+	*
+	* just few errors can occour:
+	*	- using an = sign before having a name in the stack
+	*	- open a { before having a name in the stack
+	*	- close a } before having at least two elements in the stack
+	*	- end a line with a comment # in the middle of an assignment block
+	***/
 	while ((tkn=getToken(opt_line)).length())
 	{
 		if (tkn == "{"){
 			if (stack.size() != 1)
-				throw 1;
+				throw(Exception("Bad configuration file."));
 		}else if (tkn == "}"){
 			if (stack.size() < 2)
-				throw 1;
+				throw(Exception("Bad configurator file."));
 			if (!name.length()){
 				name = stack[0];
 				stack[0] = "VALUE";
@@ -200,11 +234,11 @@ Configurator::Option::Option(std::string opt_line)
 			stack.clear();
 		}else if (tkn == "#"){
 			if (stack.size() > 0)
-				throw 1;
+				throw(Exception("Bad configurator file."));
 			break;
 		}else if (tkn == "="){
 			if (stack.size() != 1)
-				throw 1;
+				throw(Exception("Bad configurator file."));
 		}else{
 			stack.push_back(tkn);
 			if (prv_tkn == "="){
@@ -241,10 +275,10 @@ const std::vector<std::string> &Configurator::Option::getValue() const
 
 const std::vector<std::string> &Configurator::Option::getPrm(const std::string &name) const
 {
-	if (prms.find(name) != prms.end())
-		return prms.find(name)->second;
+	if (prms.find(name) == prms.end())
+		throw(Exception("Option parameter not found."));
 
-	throw 1;
+	return prms.find(name)->second;
 }
 
 const std::map<std::string, std::vector<std::string> > &Configurator::Option::getPrms() const

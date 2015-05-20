@@ -1,3 +1,4 @@
+#include "Exception.h"
 #include "Worker.h"
 #include "Primitive.h"
 
@@ -14,7 +15,7 @@ Primitive &Worker::getPrimitive(const std::string &name)
 	if (primitives.find(name) != primitives.end())
 		return *primitives.find(name)->second;
 
-	throw 1;
+	throw(Exception("Primitive not found."));
 }
 
 }
