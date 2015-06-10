@@ -51,6 +51,8 @@ void SimpleIterator::prepare(const DistributedArray2D<DKK_TYPE_REAL> &K, const D
 
 void SimpleIterator::update(const DistributedArray2D<DKK_TYPE_REAL> &K, const Array2D<DKK_TYPE_INT> &labels)
 {
+	Array2D<DKK_TYPE_REAL> invC(NC), invC2(NC);
+
 	int gr, gc;
 	int cr, cc;
 
@@ -59,16 +61,22 @@ void SimpleIterator::update(const DistributedArray2D<DKK_TYPE_REAL> &K, const Ar
 	
 	Configurator::getCommunicator().allreducesum(*C);
 
+	DKK_TYPE_REAL inv;
+	for(int i=0; i<NC; i++){
+		inv = 1.0/C->idx(i);
+		invC.idx(i) = inv;
+		invC2.idx(i) = inv*inv;
+	}
+
 	for(int i=0; i<K.rows(); i++){
 		for(int j=0; j<K.cols(); j++){
 			K.ltgIdx(i, j, gr, gc);
-
 			cr = labels.idx(gr);
 			cc = labels.idx(gc);
 
-			f->idx(i, cc) -= 2 * K.idx(i,j) / C->idx(cc);
-			if (cr == cc)
-				g->idx(cr) += K.idx(i,j) / (C->idx(cr) * C->idx(cr));
+			f->idx(i, cc) -= 2 * K.idx(i,j) * invC.idx(cc);
+			if(cr==cc)
+				g->idx(cc) += (K.idx(i,j) * invC2.idx(cc));
 		}
 	}
 
