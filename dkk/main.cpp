@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 
+#include "Utils.h"
 #include "Types.h"
 #include "Configurator.h"
 #include "Worker.h"
@@ -31,24 +32,31 @@ int main(int argc, char** argv)
 	Iterator &iterator = conf.getIterator();
 
 	//load dataset
+	double timer = wallclock(NULL);	
 	if(!comm.getRank()) std::cerr<<"Loading dataset ...\n";
 	data = new Array2D<DKK_TYPE_REAL>(reader.getLength(), reader.getDimensionality());
 	for (int i = 0; i < data->rows(); i++)
 		reader.read(i, data->bff(i));
+	if(!comm.getRank()) std::cerr<<"("<<wallclock(&timer)<<" us)\n";
 
 	//compute the kernel
+	timer = wallclock(NULL);
 	if(!comm.getRank()) std::cerr<<"Computing kernel ...\n";
 	K = new DistributedArray2D<DKK_TYPE_REAL>(comm, data->rows(), data->rows());
 	kernel.compute(*data, *K);
+	if(!comm.getRank()) std::cerr<<"("<<wallclock(&timer)<<" us)\n";
 
 	//init the labels
+	timer = wallclock(NULL);
 	if(!comm.getRank()) std::cerr<<"Initializing labels ...\n";
 	labels = new DistributedArray2D<DKK_TYPE_INT>(comm, data->rows());
 	labels_ = new Array2D<DKK_TYPE_INT>(data->rows());
 	initializer.label(*data, *K, *labels);
 	comm.allgather(*labels, *labels_);
+	if(!comm.getRank()) std::cerr<<"("<<wallclock(&timer)<<" us)\n";
 
 	//iterate
+	timer = wallclock(NULL);
 	if(!comm.getRank()) std::cerr<<"Iterating kernel k-means ...\n";
 	iterator.prepare(*K, *labels);
 	int notconverge=0;
@@ -60,11 +68,14 @@ int main(int argc, char** argv)
 		cost = iterator.cost(*K, *labels);
 		if(!comm.getRank()) std::cerr<<cost<<"\n";
 	}while(notconverge);
+	if(!comm.getRank()) std::cerr<<"("<<wallclock(&timer)<<" us)\n";
 
-
-	for(int i=0; i<labels->rows(); i++){
-		for(int j=0; j<labels->cols(); j++){
-			std::cout<<labels->idx(i,j)<<"\n";	
+	//output the labels
+	if(!comm.getRank()){
+		for(int i=0; i<labels_->rows(); i++){
+			for(int j=0; j<labels_->cols(); j++){
+				std::cout<<labels_->idx(i,j)<<"\n";	
+			}
 		}
 	}
 
