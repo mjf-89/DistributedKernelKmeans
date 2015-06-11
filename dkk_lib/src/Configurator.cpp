@@ -183,7 +183,7 @@ void Configurator::loadPluginFile(const std::string &file)
 
 	(*reg)();
 #else
-	void *handle = dlopen(file.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+	void *handle = dlopen(("./"+file).c_str(), RTLD_LAZY | RTLD_GLOBAL);
 	if (handle == NULL)
 		throw(Exception("Cannot open plugin file."));
 
