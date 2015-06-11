@@ -7,13 +7,20 @@ namespace DKK{
 
 static double wallclock(const double * ref)
 {
-	struct timespec t;
+	/*struct timespec t;
 	double ret;
 
 	clock_gettime(CLOCK_REALTIME, &t);
 	ret = ((double) t.tv_sec)*1.0e6 + 1.0e-3*((double) t.tv_nsec);
 
-	return ref ? (ret - *ref) : ret;
+	return ref ? (ret - *ref) : ret;*/
+
+	//less precise cross platform version
+	double ret;
+
+	ret = (double)clock() * 1e6 / CLOCKS_PER_SEC;
+
+	return ref ? (ret-*ref) : ret;
 }
 
 }
