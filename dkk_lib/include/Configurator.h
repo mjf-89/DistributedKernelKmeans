@@ -13,6 +13,7 @@
 #include "Kernel.h"
 #include "Initializer.h"
 #include "Iterator.h"
+#include "Driver.h"
 #include "Worker.h"
 
 namespace DKK{
@@ -68,6 +69,7 @@ public:
 	Kernel &getKernel();
 	Initializer &getInitializer();
 	Iterator &getIterator();
+	Driver &getDriver();
 
 private:
 	static Communicator *comm;

@@ -117,6 +117,15 @@ Iterator &Configurator::getIterator()
 	return (Iterator &)getUnitFromOption(opt);
 }
 
+Driver &Configurator::getDriver()
+{
+	if (opts.find("DRIVER") == opts.end())
+		throw("Driver not found.");
+
+	Option opt = opts.find("DRIVER")->second;
+	return (Driver &)getUnitFromOption(opt);
+}
+
 Unit &Configurator::getUnitFromOption(Option &opt)
 {
 	Unit &u = getUnit(opt.getValue()[0]);
