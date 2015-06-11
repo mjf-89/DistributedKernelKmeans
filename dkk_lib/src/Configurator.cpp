@@ -177,7 +177,7 @@ void Configurator::loadPlugins()
 void Configurator::loadPluginFile(const std::string &file)
 {
 #ifdef WIN32
-	HMODULE handle = LoadLibrary(file.c_str());
+	HMODULE handle = LoadLibrary((file+".dll").c_str());
 	if (handle == NULL)
 		throw(Exception("Cannot open plugin file."));
 
@@ -188,7 +188,7 @@ void Configurator::loadPluginFile(const std::string &file)
 
 	(*reg)();
 #else
-	void *handle = dlopen(("./"+file).c_str(), RTLD_LAZY | RTLD_GLOBAL);
+	void *handle = dlopen(("./"+file+".so").c_str(), RTLD_LAZY | RTLD_GLOBAL);
 	if (handle == NULL)
 		throw(Exception("Cannot open plugin file."));
 
