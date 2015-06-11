@@ -43,9 +43,8 @@ void RandomInitializer::label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<D
 {	
 	std::set<int> medoids;
 
-	while(medoids.size()<NC){
+	while(medoids.size()<NC)
 		medoids.insert(rand()%data.rows());
-	}
 
 	for(int i=0; i<labels.length(); i++){
 		float m_dst;
