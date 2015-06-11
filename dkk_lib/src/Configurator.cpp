@@ -126,7 +126,12 @@ Unit &Configurator::getUnitFromOption(Option &opt)
 		try{
 			opt.getPrm(u.getReqPrmNames()[i]);
 		}catch(Exception e){
-			throw(Exception("Cannot find required parameter."));
+			if(opts.find(u.getReqPrmNames()[i])!=opts.end()){
+				Option glb = opts.find(u.getReqPrmNames()[i])->second;
+				u.setParameter(glb.getName(), glb.getValue());
+			}else{
+				throw(Exception("Cannot find required parameter."));
+			}
 		}
 	}
 
