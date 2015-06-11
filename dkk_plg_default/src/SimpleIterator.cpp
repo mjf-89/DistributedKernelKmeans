@@ -38,8 +38,8 @@ void SimpleIterator::init()
 
 void SimpleIterator::prepare(const DistributedArray2D<DKK_TYPE_REAL> &K, const DistributedArray2D<DKK_TYPE_INT> &labels)
 {
-	f = new DistributedArray2D<DKK_TYPE_REAL>(Configurator::getCommunicator(), K.grows(), NC);
-	g = new Array2D<DKK_TYPE_REAL>(NC);
+	f = new DistributedArray2D<double>(Configurator::getCommunicator(), K.grows(), NC);
+	g = new Array2D<double>(NC);
 	C = new Array2D<DKK_TYPE_INT>(NC);
 
 	C->fill(0);
@@ -51,7 +51,7 @@ void SimpleIterator::prepare(const DistributedArray2D<DKK_TYPE_REAL> &K, const D
 
 void SimpleIterator::update(const DistributedArray2D<DKK_TYPE_REAL> &K, const Array2D<DKK_TYPE_INT> &labels)
 {
-	Array2D<DKK_TYPE_REAL> invC(NC), invC2(NC);
+	Array2D<double> invC(NC), invC2(NC);
 
 	int gr, gc;
 	int cr, cc;
@@ -76,7 +76,7 @@ void SimpleIterator::update(const DistributedArray2D<DKK_TYPE_REAL> &K, const Ar
 
 			f->idx(i, cc) -= 2 * K.idx(i,j) * invC.idx(cc);
 			if(cr==cc)
-				g->idx(cc) += (K.idx(i,j) * invC2.idx(cc));
+				g->idx(cc) += K.idx(i,j) * invC2.idx(cc);
 		}
 	}
 

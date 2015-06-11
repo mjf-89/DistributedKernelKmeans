@@ -26,8 +26,8 @@ public:
 private:
 	int NC;
 
-	DistributedArray2D<DKK_TYPE_REAL> *f;
-	Array2D<DKK_TYPE_REAL> *g;
+	DistributedArray2D<double> *f;
+	Array2D<double> *g;
 	Array2D<DKK_TYPE_INT> *C;
 };
 
