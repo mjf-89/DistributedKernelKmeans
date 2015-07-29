@@ -18,9 +18,14 @@ public:
 		return name;
 	}
 
-	void setDataArray(Array2D<DKK_TYPE_REAL> &data) 
+	void setDataRows(Array2D<DKK_TYPE_REAL> &data) 
 	{
-		this->data = &data;
+		this->data_rows = &data;
+	}
+
+	void setDataCols(Array2D<DKK_TYPE_REAL> &data) 
+	{
+		this->data_cols = &data;
 	}
 
 	void setKernelArray(DistributedArray2D<DKK_TYPE_REAL> &K)
@@ -35,7 +40,7 @@ public:
 	}
 
 protected:
-	Array2D<DKK_TYPE_REAL> *data;
+	Array2D<DKK_TYPE_REAL> *data_rows, *data_cols;
 	DistributedArray2D<DKK_TYPE_REAL> *K;
 	DKK_TYPE_REAL sigma, sigma_k;
 };

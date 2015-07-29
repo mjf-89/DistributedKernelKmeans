@@ -17,6 +17,8 @@ public:
 	void init();
 
 	void compute(Array2D<DKK_TYPE_REAL> &dataset, DistributedArray2D<DKK_TYPE_REAL> &K);
+	void compute(Array2D<DKK_TYPE_REAL> &data_rows, Array2D<DKK_TYPE_REAL> &data_cols, DistributedArray2D<DKK_TYPE_REAL> &K);
+	void computeDiagonal(Array2D<DKK_TYPE_REAL> &dataset, DKK_TYPE_REAL *K_diag);
 private:
 	DKK_TYPE_REAL sigma;
 };

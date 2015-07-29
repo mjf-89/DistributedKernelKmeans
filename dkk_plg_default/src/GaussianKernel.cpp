@@ -1,3 +1,4 @@
+#include <math.h>
 #include "GaussianKernel.h"
 #include "GaussianEuclideanPrimitive.h"
 
@@ -39,13 +40,34 @@ void GaussianKernel::compute(Array2D<DKK_TYPE_REAL> &dataset, DistributedArray2D
 {
 	GaussianEuclideanPrimitive &ge = (GaussianEuclideanPrimitive&) getWorker().getPrimitive("GaussianEuclideanPrimitive");
 
-	ge.setDataArray(dataset);
+	ge.setDataRows(dataset);
+	ge.setDataCols(dataset);
 	ge.setKernelArray(K);
 	ge.setSigma(sigma);
 
 	ge.execute();
 
 	return;
+}
+
+void GaussianKernel::compute(Array2D<DKK_TYPE_REAL> &data_rows, Array2D<DKK_TYPE_REAL> &data_cols, DistributedArray2D<DKK_TYPE_REAL> &K)
+{
+	GaussianEuclideanPrimitive &ge = (GaussianEuclideanPrimitive&) getWorker().getPrimitive("GaussianEuclideanPrimitive");
+
+	ge.setDataRows(data_rows);
+	ge.setDataCols(data_cols);
+	ge.setKernelArray(K);
+	ge.setSigma(sigma);
+
+	ge.execute();
+
+	return;
+}
+
+void GaussianKernel::computeDiagonal(Array2D<DKK_TYPE_REAL> &dataset, DKK_TYPE_REAL *K_diag)
+{
+	for (int i = 0; i < dataset.rows(); i++)
+		K_diag[i] = 1.0;
 }
 
 }

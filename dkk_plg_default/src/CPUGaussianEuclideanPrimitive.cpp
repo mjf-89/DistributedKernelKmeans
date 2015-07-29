@@ -14,8 +14,8 @@ void CPUGaussianEuclideanPrimitive::execute()
 		for (int j = 0; j < K->cols(); j++){
 			K->ltgIdx(i, j, gi, gj);
 			d=0;
-			for(int k=0; k<data->cols(); k++)
-				d += (data->idx(gi,k)-data->idx(gj,k))*(data->idx(gi,k)-data->idx(gj,k));
+			for(int k=0; k<data_rows->cols(); k++)
+				d += (data_rows->idx(gi,k)-data_cols->idx(gj,k))*(data_rows->idx(gi,k)-data_cols->idx(gj,k));
 			K->idx(i, j) = exp(-d*sigma_k);
 		}
 	}
