@@ -21,9 +21,16 @@ public:
 	inline const int &getRank() const {return rank;}
 	inline const int &getSize() const {return size;}
 
+	void bcast(DKK_TYPE_INT &val, int root);
+	void bcast(float &val, int root);
+	void bcast(double &val, int root);
+
 	void allgather(DistributedArray2D<float> &src, Array2D<float> &dst);
 	void allgather(DistributedArray2D<double> &src, Array2D<double> &dst);
 	void allgather(DistributedArray2D<DKK_TYPE_INT> &src, Array2D<DKK_TYPE_INT> &dst);
+
+	void allreducemax(float &val);
+	void allreducemax(double &val);
 
 	void allreducesum(float &val);
 	void allreducesum(double &val);
@@ -31,6 +38,8 @@ public:
 	void allreducesum(Array2D<double> &arr);
 	void allreducesum(DKK_TYPE_INT &val);
 	void allreducesum(Array2D<DKK_TYPE_INT> &arr);
+
+	void allreduceminloc(Array2D<DKK_TYPE_REAL_INT> &arr);
 
 private:
 	int rank, size;

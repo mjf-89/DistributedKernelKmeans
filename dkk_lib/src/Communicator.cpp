@@ -3,6 +3,7 @@
 #include "DistributedArray2D.h"
 
 namespace DKK{
+
 Communicator::Communicator(int *argc, char*** argv)
 {
 	MPI_Init(argc, argv);
@@ -21,6 +22,21 @@ Communicator::~Communicator()
 
 
 	MPI_Finalize();
+}
+
+void Communicator::bcast(DKK_TYPE_INT &val, int root)
+{
+	MPI_Bcast(&val, 1, DKK_TYPE_MPI_INT, root, MPI_COMM_WORLD);
+}
+
+void Communicator::bcast(float &val, int root)
+{
+	MPI_Bcast(&val, 1, MPI_FLOAT, root, MPI_COMM_WORLD);
+}
+
+void Communicator::bcast(double &val, int root)
+{
+	MPI_Bcast(&val, 1, MPI_DOUBLE, root, MPI_COMM_WORLD);
 }
 
 void Communicator::allgather(DistributedArray2D<float> &src, Array2D<float> &dst)
@@ -53,6 +69,16 @@ void Communicator::allgather(DistributedArray2D<DKK_TYPE_INT> &src, Array2D<DKK_
 	MPI_Allgatherv(src.bff(0), src.length(), DKK_TYPE_MPI_INT, dst.bff(0), cnts, dsps, DKK_TYPE_MPI_INT, MPI_COMM_WORLD);
 }
 
+void Communicator::allreducemax(float &val)
+{
+	MPI_Allreduce(MPI_IN_PLACE, &val, 1, MPI_FLOAT, MPI_MAX, MPI_COMM_WORLD);
+}
+
+void Communicator::allreducemax(double &val)
+{
+	MPI_Allreduce(MPI_IN_PLACE, &val, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+}
+
 void Communicator::allreducesum(float &val)
 {
 	MPI_Allreduce(MPI_IN_PLACE, &val, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
@@ -81,6 +107,11 @@ void Communicator::allreducesum(DKK_TYPE_INT &val)
 void Communicator::allreducesum(Array2D<DKK_TYPE_INT> &arr)
 {
 	MPI_Allreduce(MPI_IN_PLACE, arr.bff(0), arr.length(), DKK_TYPE_MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+}
+
+void Communicator::allreduceminloc(Array2D<DKK_TYPE_REAL_INT> &arr)
+{
+	MPI_Allreduce(MPI_IN_PLACE, arr.bff(0), arr.length(), DKK_TYPE_MPI_REAL_INT, MPI_MINLOC, MPI_COMM_WORLD);
 }
 
 }

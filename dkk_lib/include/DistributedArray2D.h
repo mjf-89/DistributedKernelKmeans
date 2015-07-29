@@ -2,6 +2,7 @@
 #define DKK_DISTRIBUTEDARRAY2D_H
 
 #include <stdlib.h>
+#include <math.h>
 #include "Communicator.h"
 #include "Array2D.h"
 
@@ -24,14 +25,19 @@ public:
 
 	void ltgIdx(const int &li, const int &lj, int &gi, int &gj) const;
 	void gtlIdx(const int &gi, const int &gj, int &li, int &lj) const;
+
+	int ownerRank(const int &gi, const int &gj) const;
 private:
 	int gl, gr, gc;
 	int r_off;
+
+	Communicator &comm;
 };
 
 template<class T>
 DistributedArray2D<T>::DistributedArray2D(Communicator &comm, int gr, int gc)
-:Array2D<T>((int)(gr/comm.getSize())+(comm.getRank()<gr%comm.getSize()?1:0),gc)
+:comm(comm)
+,Array2D<T>((int)(gr/comm.getSize())+(comm.getRank()<gr%comm.getSize()?1:0),gc)
 {
 	this->gr = gr;
 	this->gc = gc;
@@ -42,7 +48,8 @@ DistributedArray2D<T>::DistributedArray2D(Communicator &comm, int gr, int gc)
 
 template<class T>
 DistributedArray2D<T>::DistributedArray2D(Communicator &comm, int gr)
-:Array2D<T>((int)(gr/comm.getSize())+(comm.getRank()<gr%comm.getSize()?1:0))
+:comm(comm)
+,Array2D<T>((int)(gr/comm.getSize())+(comm.getRank()<gr%comm.getSize()?1:0))
 {
 	this->gr = gr;
 	this->gc = 1;
@@ -63,6 +70,14 @@ void DistributedArray2D<T>::gtlIdx(const int &gi, const int &gj, int &li, int &l
 {
 	li = gi-r_off;
 	lj = gj;
+}
+
+template<class T>
+int DistributedArray2D<T>::ownerRank(const int &gi, const int &gj) const
+{
+	int size = ceil(gr/comm.getSize());
+
+	return (int)(gi/size);
 }
 
 }
