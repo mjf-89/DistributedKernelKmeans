@@ -39,9 +39,15 @@
 
 #define DKK_TYPE_REAL @DKK_TYPE_REAL@
 #define DKK_TYPE_INT @DKK_TYPE_INT@
+typedef struct{
+	DKK_TYPE_REAL r;
+	int i;
+}DKK_TYPE_REAL_INT;
 
 #include <mpi.h>
 #define DKK_TYPE_MPI_REAL @DKK_TYPE_MPI_REAL@
 #define DKK_TYPE_MPI_INT @DKK_TYPE_MPI_INT@
+#define DKK_TYPE_MPI_REAL_INT @DKK_TYPE_MPI_REAL_INT@
+
 
 #endif
