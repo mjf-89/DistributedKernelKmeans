@@ -36,7 +36,7 @@ void RandomInitializer::init()
 	getParameter("SEED", seed);
 	getParameter("NC", NC); 
 
-	srand(seed);
+	random.init(seed);
 }
 
 void RandomInitializer::label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_TYPE_REAL> &K, DistributedArray2D<DKK_TYPE_INT> &labels)
@@ -44,13 +44,13 @@ void RandomInitializer::label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<D
 	std::set<int> medoids;
 
 	while(medoids.size()<NC)
-		medoids.insert(rand()%data.rows());
+		medoids.insert(random.uniform()%data.rows());
 
 	for(int i=0; i<labels.length(); i++){
 		float m_dst;
 		int m_idx=0, lbl=0;
 		for(std::set<int>::iterator j=medoids.begin(); j!=medoids.end(); j++){
-			float dst = 2.0-K.idx(i,*j);
+			float dst = 2.0-2.0*K.idx(i,*j);
 			if(lbl==0) m_dst=dst;
 			if(dst<m_dst){
 				m_dst=dst;
