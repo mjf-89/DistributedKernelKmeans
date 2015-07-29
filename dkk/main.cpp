@@ -26,6 +26,7 @@ int main(int argc, char** argv)
 
 	//get algorithm driver
 	Driver &driver = conf.getDriver();
+	//execute the algorithm
 	driver.execute(reader, kernel, initializer, iterator);
 
 	return 0;
