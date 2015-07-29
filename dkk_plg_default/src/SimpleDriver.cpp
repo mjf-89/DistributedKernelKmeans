@@ -1,5 +1,5 @@
 #include <cstdlib>
-#include <set>
+#include <math.h>
 
 #include "Configurator.h"
 #include "SimpleDriver.h"
@@ -37,61 +37,108 @@ const std::vector<std::string> &SimpleDriver::getReqPrimitiveNames()
 
 void SimpleDriver::init()
 {
+	//load parameters
 	getParameter("NC", NC);
+	getParameter("BS", BS);
+
+	//clear files content
+	fLbl.open("out.lbl");
+	fLbl.close();
+	fCst.open("out.cst");
+	fCst.close();
+	fMed.open("out.med");
+	fMed.close();
 
 	return;
 }
 
+SimpleDriver::~SimpleDriver()
+{
+}
 
 void SimpleDriver::execute(Reader &reader, Kernel &kernel, Initializer &initializer, Iterator &iterator)
 {
 	Communicator &comm = Configurator::getCommunicator();
 
-	//load dataset
-	double timer = wallclock(NULL);	
-	if(!comm.getRank()) std::cerr<<"Loading dataset ...\n";
-	data = new Array2D<DKK_TYPE_REAL>(reader.getLength(), reader.getDimensionality());
-	for (int i = 0; i < data->rows(); i++)
-		reader.read(i, data->bff(i));
-	if(!comm.getRank()) std::cerr<<"("<<wallclock(&timer)<<" us)\n";
+	nB = ceil(reader.getLength() / BS);
+	data = new Array2D<DKK_TYPE_REAL>(BS, reader.getDimensionality());
 
-	//compute the kernel
-	timer = wallclock(NULL);
-	if(!comm.getRank()) std::cerr<<"Computing kernel ...\n";
 	K_D = new DistributedArray2D<DKK_TYPE_REAL>(comm, data->rows(), data->rows());
-	kernel.compute(*data, *K_D);
-	if(!comm.getRank()) std::cerr<<"("<<wallclock(&timer)<<" us)\n";
+	K_medoids = new DistributedArray2D<DKK_TYPE_REAL>(comm, data->rows(), NC);
 
-	//init the labels
-	timer = wallclock(NULL);
-	if(!comm.getRank()) std::cerr<<"Initializing labels ...\n";
 	labels_D = new DistributedArray2D<DKK_TYPE_INT>(comm, data->rows());
 	labels = new Array2D<DKK_TYPE_INT>(data->rows());
-	initializer.label(*data, *K_D, *labels_D);
-	if(!comm.getRank()) std::cerr<<"("<<wallclock(&timer)<<" us)\n";
 
-	//iterate
-	timer = wallclock(NULL);
-	if(!comm.getRank()) std::cerr<<"Iterating kernel k-means ...\n";
-	iterator.prepare(*K_D, *labels_D);
-	int notconverge=0;
-	DKK_TYPE_REAL cost;
-	do{
-		comm.allgather(*labels_D, *labels);
-		iterator.update(*K_D, *labels);
-		notconverge=iterator.reassign(*K_D, *labels_D);
-		cost = iterator.cost(*K_D, *labels_D);
-		if(!comm.getRank()) std::cerr<<cost<<"\n";
-	}while(notconverge);
-	if(!comm.getRank()) std::cerr<<"("<<wallclock(&timer)<<" us)\n";
+	medoids_id = new Array2D<DKK_TYPE_INT>(NC);
+	medoids = new Array2D<DKK_TYPE_REAL>(NC, data->cols());
 
-	//output the labels
-	if(!comm.getRank()){
-		for(int i=0; i<labels->rows(); i++){
-			for(int j=0; j<labels->cols(); j++){
-				std::cout<<labels->idx(i,j)<<"\n";	
+	clusters_size = new Array2D<DKK_TYPE_INT>(NC);
+	clusters_similarity = new Array2D<double>(NC);
+
+	for(int i=0; i<nB; i++){
+		//load one batch
+		if(!comm.getRank()) std::cerr<<"Loading dataset ...\n";
+		for (int j = 0; j < data->rows(); j++)
+			reader.read(i*BS+j, data->bff(j));
+
+		//compute kernel for the current batch
+		if(!comm.getRank()) std::cerr<<"Computing kernel ...\n";
+		kernel.compute(*data, *K_D);
+
+		//init first batch using the given initializer
+		if(!comm.getRank()) std::cerr<<"Initializing labels ...\n";
+		if(i==0)
+			initializer.label(*data, *K_D, *labels_D);
+		else
+			initBatch(kernel);
+		
+		//iterate until convergence
+		if(!comm.getRank()) std::cerr<<"Iterating kernel k-means ...\n";
+		iterator.prepare(*K_D, *labels_D);
+		int notconverge=0;
+		do{
+			comm.allgather(*labels_D, *labels);
+			iterator.update(*K_D, *labels);
+			notconverge=iterator.reassign(*K_D, *labels_D);
+			writeCost(iterator);
+		}while(notconverge);
+
+		//find new medoids
+		if(!comm.getRank()) std::cerr<<"Finding medoids ...\n";
+		iterator.medoids(*K_D, *labels_D, *medoids_id);
+		for(int j=0; j<NC; j++){
+			if(i>0){
+				DKK_TYPE_INT old_size = clusters_size->idx(j);
+				DKK_TYPE_INT size = iterator.getClusterSize(j);
+
+				DKK_TYPE_REAL old_similarity = clusters_similarity->idx(j);
+				DKK_TYPE_REAL similarity = iterator.getClusterAvgSimilarity(j);
+
+				DKK_TYPE_REAL old_T = old_size;//*old_similarity;//(1.0-old_similarity);
+				DKK_TYPE_REAL T = size;//*similarity;//(1.0-similarity);
+				if(!comm.getRank()) std::cout<<old_similarity<<", "<<similarity<<"\n";  
+
+				similarity = old_size * old_size * old_similarity + size * size * similarity + 2*old_size*size*K_medoids->idx(j,medoids_id->idx(j));
+				//similarity /= old_size*old_size + size*size;
+				size = old_size + size;
+				similarity /= size*size;
+
+				clusters_size->idx(j) = size;
+				clusters_similarity->idx(j) = similarity;
+
+				for(int k=0; k<medoids->cols(); k++)
+					medoids->idx(j,k) = (medoids->idx(j,k)*old_T + data->idx(medoids_id->idx(j),k)*T)/(old_T+T);
+			}else{
+				clusters_size->idx(j) = iterator.getClusterSize(j);
+				clusters_similarity->idx(j) = iterator.getClusterAvgSimilarity(j);
+			
+				for(int k=0; k<medoids->cols(); k++)
+					medoids->idx(j,k) = data->idx(medoids_id->idx(j),k);
 			}
 		}
+
+		writeLabels();
+		writeMedoids();
 	}
 
 	delete data;
@@ -100,6 +147,71 @@ void SimpleDriver::execute(Reader &reader, Kernel &kernel, Initializer &initiali
 	delete K_D;
 	delete labels_D;
 
+	delete medoids;
+	delete medoids_id;
+	delete K_medoids;
+}
+
+void SimpleDriver::initBatch(Kernel &kernel)
+{
+	kernel.compute(*data, *medoids, *K_medoids);
+
+	for(int i=0; i<labels_D->length(); i++){
+		float m_dst;
+		int m_idx=0;
+		for(int j=0; j<medoids->rows(); j++){
+			float dst = 2.0-2.0*K_medoids->idx(i,j);
+			if(j==0 || dst<m_dst){
+				m_dst=dst;
+				m_idx=j;
+			}
+		}
+		labels_D->idx(i)=m_idx;
+	}
+}
+
+void SimpleDriver::writeLabels()
+{
+	if(!Configurator::getCommunicator().getRank()){
+		fLbl.open("out.lbl",std::ofstream::app);
+
+		for(int i=0; i<labels->rows(); i++){
+			for(int j=0; j<labels->cols(); j++)
+				fLbl<<labels->idx(i,j)<<" ";	
+			fLbl<<"\n";	
+		}
+		fLbl<<"\n\n";	
+
+		fLbl.close();
+	}
+}
+
+void SimpleDriver::writeMedoids()
+{
+	if(!Configurator::getCommunicator().getRank()){
+		fMed.open("out.med",std::ofstream::app);
+
+		for(int i=0; i<medoids->rows(); i++){
+			for(int j=0; j<medoids->cols(); j++)
+				fMed<<medoids->idx(i,j)<<" ";	
+			fMed<<"\n";
+		}
+		fMed<<"\n\n";
+
+		fMed.close();
+	}
+}
+
+void SimpleDriver::writeCost(Iterator &iterator)
+{
+	double cost = iterator.cost(*K_D, *labels_D);
+	if(!Configurator::getCommunicator().getRank()){
+		fCst.open("out.cst",std::ofstream::app);
+
+		fCst<<cost<<"\n";
+
+		fCst.close();
+	}
 }
 
 }
