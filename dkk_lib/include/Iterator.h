@@ -19,7 +19,12 @@ public:
 	virtual void prepare(const DistributedArray2D<DKK_TYPE_REAL> &K, const DistributedArray2D<DKK_TYPE_INT> &labels)=0;
 	virtual void update(const DistributedArray2D<DKK_TYPE_REAL> &K, const Array2D<DKK_TYPE_INT> &labels)=0;
 	virtual int reassign(const DistributedArray2D<DKK_TYPE_REAL> &K, DistributedArray2D<DKK_TYPE_INT> &labels)=0;
+
 	virtual double cost(const DistributedArray2D<DKK_TYPE_REAL> &K, const DistributedArray2D<DKK_TYPE_INT> &labels)=0;
+	virtual void medoids(const DistributedArray2D<DKK_TYPE_REAL> &K, const DistributedArray2D<DKK_TYPE_INT> &labels, Array2D<DKK_TYPE_INT> &medoids)=0;
+
+	virtual DKK_TYPE_INT getClusterSize(int cluster_idx)=0;
+	virtual double getClusterAvgSimilarity(int cluster_idx)=0;
 };
 
 }

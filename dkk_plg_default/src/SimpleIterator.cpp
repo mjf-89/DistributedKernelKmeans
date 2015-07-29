@@ -46,6 +46,8 @@ void SimpleIterator::prepare(const DistributedArray2D<DKK_TYPE_REAL> &K, const D
 	for(int i=0; i<labels.length(); i++)
 		C->idx(labels.idx(i)) += 1;
 
+	Configurator::getCommunicator().allreducesum(*C);
+
 	return;
 }
 
@@ -58,8 +60,6 @@ void SimpleIterator::update(const DistributedArray2D<DKK_TYPE_REAL> &K, const Ar
 
 	f->fill(0.0);
 	g->fill(0.0);
-	
-	Configurator::getCommunicator().allreducesum(*C);
 
 	DKK_TYPE_REAL inv;
 	for(int i=0; i<NC; i++){
@@ -106,6 +106,7 @@ int SimpleIterator::reassign(const DistributedArray2D<DKK_TYPE_REAL> &K, Distrib
 		C->idx(min_idx) += 1;
 	}
 
+	Configurator::getCommunicator().allreducesum(*C);
 	Configurator::getCommunicator().allreducesum(reassign);
 
 	return reassign;
@@ -123,6 +124,45 @@ double SimpleIterator::cost(const DistributedArray2D<DKK_TYPE_REAL> &K, const Di
 	Configurator::getCommunicator().allreducesum(c);
 
 	return c;
+}
+
+void SimpleIterator::medoids(const DistributedArray2D<DKK_TYPE_REAL> &K, const DistributedArray2D<DKK_TYPE_INT> &labels, Array2D<DKK_TYPE_INT> &medoids)
+{
+	int ci, gi, gj;
+
+	Array2D<DKK_TYPE_REAL_INT> medoidsMinDst(NC);
+	DKK_TYPE_REAL_INT init;
+	init.r = 1e64;
+	init.i = -1;
+	medoidsMinDst.fill(init);
+
+	DKK_TYPE_REAL dst;
+
+	for(int i=0; i<labels.rows(); i++){
+		labels.ltgIdx(i,0,gi,gj);
+		ci = labels.idx(i);
+		dst=K.gidx(gi,gi)+f->idx(i, ci)+g->idx(ci);
+		if(medoidsMinDst.idx(ci).i<0 || dst<medoidsMinDst.idx(ci).r){
+			medoidsMinDst.idx(ci).i = gi;
+			medoidsMinDst.idx(ci).r = dst;	
+		}
+	}
+
+	Configurator::getCommunicator().allreduceminloc(medoidsMinDst);
+
+	for(int i=0; i<medoids.rows(); i++){
+		medoids.idx(i)=medoidsMinDst.idx(i).i;
+	}
+}
+
+DKK_TYPE_INT SimpleIterator::getClusterSize(int cluster_idx)
+{
+	return C->idx(cluster_idx);
+}
+
+double SimpleIterator::getClusterAvgSimilarity(int cluster_idx)
+{
+	return g->idx(cluster_idx);
 }
 
 }

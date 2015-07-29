@@ -22,7 +22,12 @@ public:
 	void prepare(const DistributedArray2D<DKK_TYPE_REAL> &K, const DistributedArray2D<DKK_TYPE_INT> &labels);
 	void update(const DistributedArray2D<DKK_TYPE_REAL> &K, const Array2D<DKK_TYPE_INT> &labels);
 	int reassign(const DistributedArray2D<DKK_TYPE_REAL> &K, DistributedArray2D<DKK_TYPE_INT> &labels);
+
 	double cost(const DistributedArray2D<DKK_TYPE_REAL> &K, const DistributedArray2D<DKK_TYPE_INT> &labels);
+	void medoids(const DistributedArray2D<DKK_TYPE_REAL> &K, const DistributedArray2D<DKK_TYPE_INT> &labels, Array2D<DKK_TYPE_INT> &medoids);
+
+	DKK_TYPE_INT getClusterSize(int cluster_idx);
+	double getClusterAvgSimilarity(int cluster_idx);
 private:
 	int NC;
 
