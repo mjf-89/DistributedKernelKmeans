@@ -41,6 +41,7 @@ public:
 
 	void allreduceminloc(Array2D<DKK_TYPE_REAL_INT> &arr);
 
+	double wtime();
 private:
 	int rank, size;
 	int *cnts, *dsps;

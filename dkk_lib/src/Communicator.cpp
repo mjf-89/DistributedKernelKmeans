@@ -114,4 +114,9 @@ void Communicator::allreduceminloc(Array2D<DKK_TYPE_REAL_INT> &arr)
 	MPI_Allreduce(MPI_IN_PLACE, arr.bff(0), arr.length(), DKK_TYPE_MPI_REAL_INT, MPI_MINLOC, MPI_COMM_WORLD);
 }
 
+double Communicator::wtime()
+{
+	return MPI_Wtime();
+}
+
 }

@@ -24,10 +24,13 @@ public:
 	void execute(Reader &reader, Kernel &kernel, Initializer &initializer, Iterator &iterator);
 	
 private:
-	std::ofstream fLbl, fCst, fMed;
+	std::ofstream fLbl, fCst, fMed, fTim;
 
 	int NC;
 	int BS, nB;
+	std::string fname;
+
+	double global_timer, init_timer, kernel_timer, iterator_timer, medoid_timer;
 
 	Array2D<DKK_TYPE_REAL> *data;
 	Array2D<DKK_TYPE_INT> *labels;
@@ -47,6 +50,7 @@ private:
 	void writeLabels();
 	void writeMedoids();
 	void writeCost(Iterator &iterator);
+	void writeTime();
 };
 
 }
