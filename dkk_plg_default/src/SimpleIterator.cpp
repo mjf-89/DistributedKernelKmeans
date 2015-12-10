@@ -69,16 +69,20 @@ void SimpleIterator::update(const DistributedArray2D<DKK_TYPE_REAL> &K, const Ar
 	}
 
 	for(int i=0; i<K.rows(); i++){
+		K.ltgIdx(i, 0, gr, gc);
+		cr = labels.idx(gr);
 		for(int j=0; j<K.cols(); j++){
-			K.ltgIdx(i, j, gr, gc);
-			cr = labels.idx(gr);
-			cc = labels.idx(gc);
+			cc = labels.idx(j);
 
-			f->idx(i, cc) -= 2 * K.idx(i,j) * invC.idx(cc);
+			f->idx(i, cc) -= 2 * K.idx(i,j);
 			if(cr==cc)
-				g->idx(cc) += K.idx(i,j) * invC2.idx(cc);
+				g->idx(cc) += K.idx(i,j) ;
 		}
+		for(int j=0; j<NC; j++)
+			f->idx(i,j) *= invC.idx(j);
 	}
+	for(int j=0; j<NC; j++)
+		g->idx(j) *= invC2.idx(j);
 
 	Configurator::getCommunicator().allreducesum(*g);
 
