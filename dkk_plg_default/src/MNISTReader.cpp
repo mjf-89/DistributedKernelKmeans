@@ -60,7 +60,7 @@ void MNISTReader::init()
 
 void MNISTReader::goTo(const int &idx)
 {
-	fin.seekg(128 + idx*D);
+	fin.seekg(16 + idx*D);
 }
 
 int MNISTReader::getDimensionality()

@@ -3,7 +3,6 @@
 
 #include <fstream>
 
-#include "Random.h"
 #include "Types.h"
 #include "PluginDefaultWindowsExport.h"
 #include "Initializer.h"
@@ -20,9 +19,8 @@ public:
 
 	void init();
 
-	void label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_TYPE_REAL> &K, DistributedArray2D<DKK_TYPE_INT> &labels);
+	void label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_TYPE_REAL> &K, Kernel &kernel, Array2D<DKK_TYPE_REAL> &medoids);
 private:
-	Random random;
 	int seed, NC;
 	DistributedArray2D<DKK_TYPE_REAL> *D2;
 };

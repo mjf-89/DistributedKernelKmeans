@@ -26,6 +26,7 @@ public:
 	inline T *bff(const int &i){ return buffer + i*c; }
 
 	void fill(const T &f);
+	void swap(const int id_a, const int id_b);
 private:
 	int l, r, c;
 	T* buffer;
@@ -70,6 +71,17 @@ void Array2D<T>::fill(const T& f)
 {
 	for(int i=0; i<l; i++)
 		buffer[i] = f;
+}
+
+template<class T>
+void Array2D<T>::swap(const int id_a, const int id_b)
+{
+	T tmp;
+	for(int i=0; i<this->c; i++){
+		tmp = this->idx(id_a,i);
+		this->idx(id_a,i) = this->idx(id_b,i); 
+		this->idx(id_b,i) = tmp;
+	}
 }
 
 }

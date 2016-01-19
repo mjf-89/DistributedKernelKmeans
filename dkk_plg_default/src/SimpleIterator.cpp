@@ -38,15 +38,24 @@ void SimpleIterator::init()
 
 void SimpleIterator::prepare(const DistributedArray2D<DKK_TYPE_REAL> &K, const DistributedArray2D<DKK_TYPE_INT> &labels)
 {
+	int gi, gj;
+
 	f = new DistributedArray2D<double>(Configurator::getCommunicator(), K.grows(), NC);
 	g = new Array2D<double>(NC);
 	C = new Array2D<DKK_TYPE_INT>(NC);
+	Csub = new Array2D<DKK_TYPE_INT>(NC);
 
 	C->fill(0);
-	for(int i=0; i<labels.length(); i++)
+	Csub->fill(0);
+	for(int i=0; i<labels.length(); i++){
+		labels.ltgIdx(i,0,gi,gj);
 		C->idx(labels.idx(i)) += 1;
+		if(gi<K.cols())
+			Csub->idx(labels.idx(i)) += 1;
+	}
 
 	Configurator::getCommunicator().allreducesum(*C);
+	Configurator::getCommunicator().allreducesum(*Csub);
 
 	return;
 }
@@ -63,7 +72,7 @@ void SimpleIterator::update(const DistributedArray2D<DKK_TYPE_REAL> &K, const Ar
 
 	DKK_TYPE_REAL inv;
 	for(int i=0; i<NC; i++){
-		inv = 1.0/C->idx(i);
+		inv = 1.0/Csub->idx(i);
 		invC.idx(i) = inv;
 		invC2.idx(i) = inv*inv;
 	}
@@ -75,7 +84,7 @@ void SimpleIterator::update(const DistributedArray2D<DKK_TYPE_REAL> &K, const Ar
 			cc = labels.idx(j);
 
 			f->idx(i, cc) -= 2 * K.idx(i,j);
-			if(cr==cc)
+			if(cr==cc && gr<K.cols())
 				g->idx(cc) += K.idx(i,j) ;
 		}
 		for(int j=0; j<NC; j++)
@@ -92,11 +101,14 @@ void SimpleIterator::update(const DistributedArray2D<DKK_TYPE_REAL> &K, const Ar
 int SimpleIterator::reassign(const DistributedArray2D<DKK_TYPE_REAL> &K, DistributedArray2D<DKK_TYPE_INT> &labels)
 {
 	DKK_TYPE_INT reassign=0;
+	int gi, gj;
 
 	C->fill(0);
+	Csub->fill(0);
 	for(int i=0; i<labels.rows(); i++){
 		DKK_TYPE_REAL min=f->idx(i,0)+g->idx(0);
 		DKK_TYPE_INT min_idx=0;
+		labels.ltgIdx(i,0,gi,gj);
 		for(int j=1; j<NC; j++){
 			if(f->idx(i,j)+g->idx(j)<min){
 				min = f->idx(i,j)+g->idx(j);
@@ -108,9 +120,13 @@ int SimpleIterator::reassign(const DistributedArray2D<DKK_TYPE_REAL> &K, Distrib
 
 		labels.idx(i) = min_idx;
 		C->idx(min_idx) += 1;
+		if(gi < K.cols()){
+			Csub->idx(min_idx) += 1;
+		}
 	}
 
 	Configurator::getCommunicator().allreducesum(*C);
+	Configurator::getCommunicator().allreducesum(*Csub);
 	Configurator::getCommunicator().allreducesum(reassign);
 
 	return reassign;
@@ -120,9 +136,8 @@ double SimpleIterator::cost(const DistributedArray2D<DKK_TYPE_REAL> &K, const Di
 	double c=0.0;
 	int ci, gi, gj;
 	for(int i=0; i<K.rows(); i++){
-		labels.ltgIdx(i,0,gi,gj);
 		ci = labels.idx(i);
-		c += K.gidx(gi,gi) + f->idx(i, ci) + g->idx(ci);
+		c += 1.0 + f->idx(i, ci) + g->idx(ci);
 	}
 
 	Configurator::getCommunicator().allreducesum(c);
@@ -145,7 +160,7 @@ void SimpleIterator::medoids(const DistributedArray2D<DKK_TYPE_REAL> &K, const D
 	for(int i=0; i<labels.rows(); i++){
 		labels.ltgIdx(i,0,gi,gj);
 		ci = labels.idx(i);
-		dst=K.gidx(gi,gi)+f->idx(i, ci)+g->idx(ci);
+		dst=1.0+f->idx(i, ci)+g->idx(ci);
 		if(medoidsMinDst.idx(ci).i<0 || dst<medoidsMinDst.idx(ci).r){
 			medoidsMinDst.idx(ci).i = gi;
 			medoidsMinDst.idx(ci).r = dst;	

@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <set>
 
+#include "Configurator.h"
 #include "Random.h"
 #include "RandomInitializer.h"
 
@@ -36,29 +37,25 @@ void RandomInitializer::init()
 	getParameter("SEED", seed);
 	getParameter("NC", NC); 
 
-	random.init(seed);
+	Random::init(seed);
 }
 
-void RandomInitializer::label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_TYPE_REAL> &K, DistributedArray2D<DKK_TYPE_INT> &labels)
+void RandomInitializer::label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_TYPE_REAL> &K, Kernel &kernel, Array2D<DKK_TYPE_REAL> &medoids)
 {	
-	std::set<int> medoids;
+	std::set<int> medoids_id;
+	int i;
 
-	while(medoids.size()<NC)
-		medoids.insert(random.uniform()%data.rows());
+	Array2D<DKK_TYPE_REAL> missing_data(1,data.cols());
+	DistributedArray2D<DKK_TYPE_REAL> missing_K(Configurator::getCommunicator(), data.rows());
 
-	for(int i=0; i<labels.length(); i++){
-		float m_dst;
-		int m_idx=0, lbl=0;
-		for(std::set<int>::iterator j=medoids.begin(); j!=medoids.end(); j++){
-			float dst = 2.0-2.0*K.idx(i,*j);
-			if(lbl==0) m_dst=dst;
-			if(dst<m_dst){
-				m_dst=dst;
-				m_idx=lbl;
-			}
-			lbl++;
-		}
-		labels.idx(i)=m_idx;
+	while(medoids_id.size()<NC)
+		medoids_id.insert(Random::uniform()%data.rows());
+
+	i = 0;
+	for(std::set<int>::iterator j=medoids_id.begin(); j!=medoids_id.end(); j++){
+		for(int k=0; k<medoids.cols(); k++)
+			medoids.idx(i,k) = data.idx(*j,k);
+		i++;
 	}
 }
 

@@ -37,10 +37,10 @@ void KPPInitializer::init()
 	getParameter("SEED", seed);
 	getParameter("NC", NC); 
 
-	random.init(seed);
+	Random::init(seed);
 }
 
-void KPPInitializer::label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_TYPE_REAL> &K, DistributedArray2D<DKK_TYPE_INT> &labels)
+void KPPInitializer::label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_TYPE_REAL> &K, Kernel &kernel, Array2D<DKK_TYPE_REAL> &medoids)
 {	
 	Communicator &comm = Configurator::getCommunicator();
 
@@ -51,12 +51,16 @@ void KPPInitializer::label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_
 	Array2D<DKK_TYPE_INT> medoids_id(NC);
 
 	DistributedArray2D<DKK_TYPE_REAL> D2(comm, N);
+
+	Array2D<DKK_TYPE_REAL> missing_data(1,data.cols());
+	DistributedArray2D<DKK_TYPE_REAL> missing_K(comm, N);
+
 	DKK_TYPE_REAL D2_max, threshold, dst;
 
 	for(int i=0; i<NC; i++){
 		accepted = 0;
 		while(!accepted){
-			id = random.uniform()%N;
+			id = Random::uniform()%N;
 			if(i==0){
 				accepted = 1;		
 			}else{
@@ -66,7 +70,7 @@ void KPPInitializer::label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_
 					threshold = D2.gidx(id);
 				comm.bcast(threshold, owner);
 
-				if(random.uniform()*D2_max < threshold*DKK_RAND_MAX)
+				if(Random::uniform()*D2_max < threshold*DKK_RAND_MAX)
 					accepted = 1;
 			}
 		}
@@ -74,30 +78,39 @@ void KPPInitializer::label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_
 		medoids_id.idx(i) = id;
 		D2_max = 0.0;
 
-		for(int j=0; j<K.rows(); j++){
-			dst = 2.0 - 2.0*K.idx(j,id);
-			if(i==0 || dst < D2.idx(j))
-				D2.idx(j) = dst;
+		if(id>=K.cols()){
+			for(int j=0; j<data.cols(); j++)
+				missing_data.idx(0,j) = data.idx(id,j);
 
-			if(D2_max < D2.idx(j))
-				D2_max = D2.idx(j);
+			kernel.compute(data, missing_data ,missing_K); 
+
+			for(int j=0; j<K.rows(); j++){
+				dst = 2.0 - 2.0*missing_K.idx(j);
+				if(i==0 || dst < D2.idx(j))
+					D2.idx(j) = dst;
+
+				if(D2_max < D2.idx(j))
+					D2_max = D2.idx(j);
+			}
+		}else{
+			for(int j=0; j<K.rows(); j++){
+				dst = 2.0 - 2.0*K.idx(j,id);
+				if(i==0 || dst < D2.idx(j))
+					D2.idx(j) = dst;
+
+				if(D2_max < D2.idx(j))
+					D2_max = D2.idx(j);
+			}
 		}
+
 
 		comm.allreducemax(D2_max);
 	}
 
-	for(int i=0; i<labels.length(); i++){
-		float m_dst;
-		int m_idx=0;
-		for(int j=0; j<medoids_id.rows(); j++){
-			dst = 2.0-2.0*K.idx(i,medoids_id.idx(j));
-			if(j==0 || dst<m_dst){
-				m_dst=dst;
-				m_idx=j;
-			}
-		}
-		labels.idx(i)=m_idx;
-	}
+	for(int i=0; i<medoids.rows(); i++)
+		for(int j=0; j<medoids.cols(); j++)
+			medoids.idx(i,j) = data.idx(medoids_id.idx(i),j);
+
 }
 
 }

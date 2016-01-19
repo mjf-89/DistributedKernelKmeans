@@ -1,46 +1,50 @@
 #include <cstdlib>
 #include <math.h>
+#include <set>
 
 #include "Configurator.h"
-#include "SimpleDriver.h"
+#include "SubsampleDriver.h"
 
 #include "Utils.h"
+#include "Random.h"
 
 namespace DKK{
 
-const std::string &SimpleDriver::getName()
+const std::string &SubsampleDriver::getName()
 {
-	static std::string name = "SimpleDriver";
+	static std::string name = "SubsampleDriver";
 	return name;
 }
 
-const std::vector<std::string> &SimpleDriver::getReqPrmNames()
+const std::vector<std::string> &SubsampleDriver::getReqPrmNames()
 {
 	//stupid fix to avoid c++ 11 init lists
 	static std::string reqPrmNamesA[] = {
 		"OUTPUT_PREFIX",
 		"NC",
+		"LANDMARKS",
 		"READER",
 		"KERNEL",
 		"INITIALIZER",
 		"ITERATOR"
 	};
-	static std::vector<std::string> reqPrmNames(reqPrmNamesA, reqPrmNamesA+6);
+	static std::vector<std::string> reqPrmNames(reqPrmNamesA, reqPrmNamesA+7);
 	return reqPrmNames;
 }
 
-const std::vector<std::string> &SimpleDriver::getReqPrimitiveNames()
+const std::vector<std::string> &SubsampleDriver::getReqPrimitiveNames()
 {
 	static std::vector<std::string> reqPrimitiveNames;
 
 	return reqPrimitiveNames;
 }
 
-void SimpleDriver::init()
+void SubsampleDriver::init()
 {
 	//load parameters
 	getParameter("NC", NC);
 	getParameter("BS", BS);
+	getParameter("LANDMARKS",landmarks_n);
 	getParameter("OUTPUT_PREFIX",fname);
 
 	//clear files content
@@ -62,13 +66,16 @@ void SimpleDriver::init()
 	return;
 }
 
-SimpleDriver::~SimpleDriver()
+SubsampleDriver::~SubsampleDriver()
 {
 }
 
-void SimpleDriver::execute(Reader &reader, Kernel &kernel, Initializer &initializer, Iterator &iterator)
+void SubsampleDriver::execute(Reader &reader, Kernel &kernel, Initializer &initializer, Iterator &iterator)
 {
 	double global_timer_loc, init_timer_loc, kernel_timer_loc, iterator_timer_loc, medoid_timer_loc;
+	int i, j, k;
+
+	std::set<int> landmarks_id;
 
 	Communicator &comm = Configurator::getCommunicator();
 
@@ -76,8 +83,9 @@ void SimpleDriver::execute(Reader &reader, Kernel &kernel, Initializer &initiali
 
 	nB = ceil(reader.getLength() / BS);
 	data = new Array2D<DKK_TYPE_REAL>(BS, reader.getDimensionality());
+	landmarks = new Array2D<DKK_TYPE_REAL>(landmarks_n, reader.getDimensionality());
 
-	K_D = new DistributedArray2D<DKK_TYPE_REAL>(comm, data->rows(), data->rows());
+	K_D = new DistributedArray2D<DKK_TYPE_REAL>(comm, data->rows(), landmarks_n);
 	K_medoids = new DistributedArray2D<DKK_TYPE_REAL>(comm, data->rows(), NC);
 
 	labels_D = new DistributedArray2D<DKK_TYPE_INT>(comm, data->rows());
@@ -89,16 +97,27 @@ void SimpleDriver::execute(Reader &reader, Kernel &kernel, Initializer &initiali
 	clusters_size = new Array2D<DKK_TYPE_INT>(NC);
 	clusters_similarity = new Array2D<double>(NC);
 
-	for(int i=0; i<nB; i++){
+	for(i=0; i<nB; i++){
 		//load one batch
 		if(!comm.getRank()) std::cerr<<"Loading dataset ...\n";
-		for (int j = 0; j < data->rows(); j++)
+		for (j = 0; j < data->rows(); j++)
 			reader.read(i*BS+j, data->bff(j));
+
+		//randomly select landmarks	
+		while(landmarks_id.size()<landmarks_n)
+			landmarks_id.insert(Random::uniform()%data->rows());
+		j=0;
+		for(std::set<int>::iterator l=landmarks_id.begin(); l!=landmarks_id.end(); l++){
+			for(k=0; k<data->cols(); k++)
+				landmarks->idx(j,k) = data->idx(*l,k);
+			data->swap(j,*l);
+			j++;
+		}
 
 		//compute kernel for the current batch
 		kernel_timer_loc = comm.wtime();
 		if(!comm.getRank()) std::cerr<<"Computing kernel ...\n";
-		kernel.compute(*data, *K_D);
+		kernel.compute(*data, *landmarks, *K_D);
 		kernel_timer += comm.wtime()-kernel_timer_loc;
 
 		//init first batch using the given initializer
@@ -129,7 +148,7 @@ void SimpleDriver::execute(Reader &reader, Kernel &kernel, Initializer &initiali
 		medoid_timer_loc = comm.wtime();
 		if(!comm.getRank()) std::cerr<<"Finding medoids ...\n";
 		iterator.medoids(*K_D, *labels_D, *medoids_id);
-		for(int j=0; j<NC; j++){
+		for(j=0; j<NC; j++){
 			if(i>0){
 				DKK_TYPE_INT old_size = clusters_size->idx(j);
 				DKK_TYPE_INT size = iterator.getClusterSize(j);
@@ -148,7 +167,7 @@ void SimpleDriver::execute(Reader &reader, Kernel &kernel, Initializer &initiali
 				clusters_size->idx(j) = size;
 				clusters_similarity->idx(j) = similarity;
 
-				for(int k=0; k<medoids->cols(); k++){
+				for(k=0; k<medoids->cols(); k++){
 					if(medoids_id->idx(j) > 0)
 						medoids->idx(j,k) = (medoids->idx(j,k)*old_T + data->idx(medoids_id->idx(j),k)*T)/(old_T+T);
 					else
@@ -158,7 +177,7 @@ void SimpleDriver::execute(Reader &reader, Kernel &kernel, Initializer &initiali
 				clusters_size->idx(j) = iterator.getClusterSize(j);
 				clusters_similarity->idx(j) = iterator.getClusterAvgSimilarity(j);
 			
-				for(int k=0; k<medoids->cols(); k++)
+				for(k=0; k<medoids->cols(); k++)
 					medoids->idx(j,k) = data->idx(medoids_id->idx(j),k);
 			}
 		}
@@ -183,7 +202,7 @@ void SimpleDriver::execute(Reader &reader, Kernel &kernel, Initializer &initiali
 	delete K_medoids;
 }
 
-void SimpleDriver::initBatch(Kernel &kernel)
+void SubsampleDriver::initBatch(Kernel &kernel)
 {
 	kernel.compute(*data, *medoids, *K_medoids);
 
@@ -201,7 +220,7 @@ void SimpleDriver::initBatch(Kernel &kernel)
 	}
 }
 
-void SimpleDriver::writeLabels()
+void SubsampleDriver::writeLabels()
 {
 	if(!Configurator::getCommunicator().getRank()){
 		fLbl.open((fname+".lbl").c_str(),std::ofstream::app);
@@ -217,7 +236,7 @@ void SimpleDriver::writeLabels()
 	}
 }
 
-void SimpleDriver::writeMedoids()
+void SubsampleDriver::writeMedoids()
 {
 	if(!Configurator::getCommunicator().getRank()){
 		fMed.open((fname+".med").c_str(),std::ofstream::app);
@@ -233,7 +252,7 @@ void SimpleDriver::writeMedoids()
 	}
 }
 
-void SimpleDriver::writeCost(Iterator &iterator)
+void SubsampleDriver::writeCost(Iterator &iterator)
 {
 	double cost = iterator.cost(*K_D, *labels_D);
 	if(!Configurator::getCommunicator().getRank()){
@@ -245,7 +264,7 @@ void SimpleDriver::writeCost(Iterator &iterator)
 	}
 }
 
-void SimpleDriver::writeTime()
+void SubsampleDriver::writeTime()
 {
 	if(!Configurator::getCommunicator().getRank()){
 		fTim.open((fname+".t").c_str(),std::ofstream::app);

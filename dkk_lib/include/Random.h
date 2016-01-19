@@ -11,11 +11,11 @@ class DKK_EXPORT Random{
 public:
 	Random();
 
-	void init(int s);
-	int uniform();
+	static void init(int s);
+	static int uniform();
 
 private:
-	int seed;
+	static int seed;
 };
 
 }

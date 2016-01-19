@@ -6,6 +6,7 @@
 #include "Unit.h"
 #include "Array2D.h"
 #include "DistributedArray2D.h"
+#include "Kernel.h"
 
 namespace DKK{
 
@@ -16,7 +17,7 @@ public:
 		return type;
 	}
 
-	virtual void label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_TYPE_REAL> &K, DistributedArray2D<DKK_TYPE_INT> &labels)=0;
+	virtual void label(Array2D<DKK_TYPE_REAL> &data, DistributedArray2D<DKK_TYPE_REAL> &K, Kernel &kernel, Array2D<DKK_TYPE_REAL> &medoids)=0;
 };
 
 }

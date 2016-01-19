@@ -75,9 +75,14 @@ void DistributedArray2D<T>::gtlIdx(const int &gi, const int &gj, int &li, int &l
 template<class T>
 int DistributedArray2D<T>::ownerRank(const int &gi, const int &gj) const
 {
-	int size = ceil(gr/comm.getSize());
+	int size_c = ceil(gr*1.0/comm.getSize());
+	int size_f = floor(gr*1.0/comm.getSize());
+	int mod = gr%comm.getSize();
+	int ret = floor(gi*1.0/size_c);
+	if(ret>=mod)
+		ret = mod+floor((gi-mod*size_c)*1.0/size_f);
 
-	return (int)(gi/size);
+	return ret;
 }
 
 }

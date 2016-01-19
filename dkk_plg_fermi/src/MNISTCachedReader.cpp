@@ -60,27 +60,25 @@ void MNISTCachedReader::init()
 	getParameter("CACHE_SIZE", cache_size);
 	cache_buffer = (unsigned char*)malloc(sizeof(unsigned char)*cache_size);
 
-	fin.read((char *)cache_buffer, cache_size);
-	cache_idx = 0;
+	fin.read((char *)cache_buffer, 16);
 	cache = cache_buffer;
-
 	magic = read32Int();
 	N = read32Int();
 	D = read32Int() * read32Int();
-	std::cout<<"mjf_dbg>"<<N<<" "<<D<<"\n";
 
 	cache_N = cache_size/D;
+	cache_idx = -cache_size-1;
 }
 
 void MNISTCachedReader::goTo(const int &idx)
 {
 	if(idx < cache_idx || idx >= cache_idx+cache_N){
-		fin.seekg(128 + idx*D);
+		fin.seekg(16 + idx*D);
 		fin.read((char *)cache_buffer, cache_size);		
 		cache_idx = idx;
 	}
 
-	cache = cache_buffer+idx-cache_idx;
+	cache = cache_buffer+(idx-cache_idx)*D;
 }
 
 int MNISTCachedReader::getDimensionality()
@@ -97,7 +95,7 @@ int MNISTCachedReader::read(int idx, DKK_TYPE_REAL* data)
 {
 	goTo(idx);
 	for(int i=0; i<D; i++)
-		data[i]=(DKK_TYPE_REAL)readByte();
+		data[i]=(DKK_TYPE_REAL)readByte()/255.0;
 
 	return 0;
 }

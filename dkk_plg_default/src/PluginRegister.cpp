@@ -11,7 +11,6 @@
 #include "XTCReader.h"
 
 
-#include "ExplicitInitializer.h"
 #include "RandomInitializer.h"
 #include "KPPInitializer.h"
 
@@ -27,7 +26,6 @@ extern "C" DKK_PLUGIN_DEFAULT_EXPORT void registerUnits()
 
 	DKK::Configurator::registerUnit(new DKK::GaussianKernel());
 
-	DKK::Configurator::registerUnit(new DKK::ExplicitInitializer());
 	DKK::Configurator::registerUnit(new DKK::RandomInitializer());
 	DKK::Configurator::registerUnit(new DKK::KPPInitializer());
 

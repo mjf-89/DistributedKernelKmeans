@@ -4,8 +4,9 @@ namespace DKK{
 
 Random::Random()
 {
-	seed = 1;	
 }
+
+int Random::seed = 1;
 
 void Random::init(int s)
 {
