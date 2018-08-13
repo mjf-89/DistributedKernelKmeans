@@ -1,4 +1,4 @@
-# Mini-batch Distributed Kernel K-Means
+#Distributed Kernel K-Means
 
 ## Installation
 
